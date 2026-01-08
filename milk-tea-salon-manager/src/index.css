@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "@fontsource/nunito/400.css";
+@import "@fontsource/nunito/500.css";
+@import "@fontsource/nunito/600.css";
+@import "@fontsource/nunito/700.css";
+@import "@fontsource/nunito/800.css";
+
+/* Milk Tea Beauty Salon Admin - Design System */
+
+@layer base {
+  :root {
+    /* Creamy warm background */
+    --background: 40 33% 98%;
+    --foreground: 25 30% 20%;
+
+    /* Card surfaces */
+    --card: 40 30% 99%;
+    --card-foreground: 25 30% 20%;
+
+    --popover: 40 30% 99%;
+    --popover-foreground: 25 30% 20%;
+
+    /* Milk Tea Primary */
+    --primary: 34 36% 68%;
+    --primary-foreground: 25 30% 15%;
+
+    /* Warm secondary */
+    --secondary: 35 25% 92%;
+    --secondary-foreground: 25 30% 25%;
+
+    /* Muted tones */
+    --muted: 35 20% 94%;
+    --muted-foreground: 25 15% 50%;
+
+    /* Accent - slightly darker milk tea */
+    --accent: 34 40% 60%;
+    --accent-foreground: 40 30% 99%;
+
+    /* Pastel tags */
+    --pastel-pink: 340 80% 90%;
+    --pastel-pink-foreground: 340 50% 35%;
+    --pastel-blue: 210 70% 90%;
+    --pastel-blue-foreground: 210 50% 35%;
+    --pastel-green: 140 50% 88%;
+    --pastel-green-foreground: 140 40% 30%;
+    --pastel-lavender: 270 60% 90%;
+    --pastel-lavender-foreground: 270 40% 35%;
+    --pastel-peach: 20 80% 88%;
+    --pastel-peach-foreground: 20 50% 35%;
+
+    /* Staff colors */
+    --staff-pink: 340 75% 85%;
+    --staff-pink-foreground: 340 60% 30%;
+    --staff-blue: 210 70% 85%;
+    --staff-blue-foreground: 210 55% 30%;
+    --staff-lavender: 270 55% 85%;
+    --staff-lavender-foreground: 270 45% 30%;
+    --staff-peach: 25 75% 85%;
+    --staff-peach-foreground: 25 55% 30%;
+
+    /* Status colors */
+    --success: 140 50% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 90% 55%;
+    --warning-foreground: 25 30% 15%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 35 25% 88%;
+    --input: 35 25% 88%;
+    --ring: 34 36% 68%;
+
+    --radius: 1.25rem;
+
+    /* Sidebar (unused but required) */
+    --sidebar-background: 40 33% 98%;
+    --sidebar-foreground: 25 30% 20%;
+    --sidebar-primary: 34 36% 68%;
+    --sidebar-primary-foreground: 25 30% 15%;
+    --sidebar-accent: 35 25% 92%;
+    --sidebar-accent-foreground: 25 30% 25%;
+    --sidebar-border: 35 25% 88%;
+    --sidebar-ring: 34 36% 68%;
+
+    /* Custom shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(34 36% 68% / 0.15);
+    --shadow-card: 0 2px 12px -2px hsl(25 30% 20% / 0.08);
+    --shadow-fab: 0 6px 24px -4px hsl(34 40% 60% / 0.4);
+  }
+
+  .dark {
+    --background: 25 20% 10%;
+    --foreground: 40 30% 95%;
+    --card: 25 18% 14%;
+    --card-foreground: 40 30% 95%;
+    --popover: 25 18% 14%;
+    --popover-foreground: 40 30% 95%;
+    --primary: 34 36% 68%;
+    --primary-foreground: 25 30% 10%;
+    --secondary: 25 15% 20%;
+    --secondary-foreground: 40 30% 90%;
+    --muted: 25 15% 18%;
+    --muted-foreground: 35 15% 60%;
+    --accent: 34 40% 55%;
+    --accent-foreground: 40 30% 98%;
+    --pastel-pink: 340 40% 30%;
+    --pastel-pink-foreground: 340 80% 85%;
+    --pastel-blue: 210 40% 30%;
+    --pastel-blue-foreground: 210 70% 85%;
+    --pastel-green: 140 30% 25%;
+    --pastel-green-foreground: 140 50% 80%;
+    --destructive: 0 55% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 25 15% 22%;
+    --input: 25 15% 22%;
+    --ring: 34 36% 68%;
+    --sidebar-background: 25 20% 10%;
+    --sidebar-foreground: 40 30% 95%;
+    --sidebar-primary: 34 36% 68%;
+    --sidebar-primary-foreground: 25 30% 10%;
+    --sidebar-accent: 25 15% 20%;
+    --sidebar-accent-foreground: 40 30% 90%;
+    --sidebar-border: 25 15% 22%;
+    --sidebar-ring: 34 36% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Nunito', sans-serif;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

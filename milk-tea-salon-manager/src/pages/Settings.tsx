@@ -28,6 +28,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// ... (imports remain the same)
+
 interface BusinessHour {
   day: string;
   isOpen: boolean;
@@ -36,17 +38,17 @@ interface BusinessHour {
 }
 
 const initialBusinessHours: BusinessHour[] = [
-  { day: "Monday", isOpen: true, open: "10:00", close: "20:00" },
-  { day: "Tuesday", isOpen: true, open: "10:00", close: "20:00" },
-  { day: "Wednesday", isOpen: true, open: "10:00", close: "20:00" },
-  { day: "Thursday", isOpen: true, open: "10:00", close: "20:00" },
-  { day: "Friday", isOpen: true, open: "10:00", close: "21:00" },
-  { day: "Saturday", isOpen: true, open: "09:00", close: "21:00" },
-  { day: "Sunday", isOpen: false, open: "10:00", close: "18:00" },
+  { day: "週一", isOpen: true, open: "10:00", close: "20:00" },
+  { day: "週二", isOpen: true, open: "10:00", close: "20:00" },
+  { day: "週三", isOpen: true, open: "10:00", close: "20:00" },
+  { day: "週四", isOpen: true, open: "10:00", close: "20:00" },
+  { day: "週五", isOpen: true, open: "10:00", close: "21:00" },
+  { day: "週六", isOpen: true, open: "09:00", close: "21:00" },
+  { day: "週日", isOpen: false, open: "10:00", close: "18:00" },
 ];
 
 const timeOptions = [
-  "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", 
+  "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00",
   "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"
 ];
 
@@ -55,15 +57,15 @@ const BOOKING_URL = "liff.line.me/1234567890-abcdefgh";
 const Settings = () => {
   const navigate = useNavigate();
   const [showQRModal, setShowQRModal] = useState(false);
-  
+
   // Shop Profile
   const [shopName, setShopName] = useState("Milk Tea Nails");
   const [address, setAddress] = useState("123 Beauty Street, Taipei");
   const [phone, setPhone] = useState("02-1234-5678");
-  
+
   // Business Hours
   const [businessHours, setBusinessHours] = useState(initialBusinessHours);
-  
+
   // App Settings
   const [notifications, setNotifications] = useState({
     bookingReminder: true,
@@ -82,9 +84,9 @@ const Settings = () => {
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(`https://${BOOKING_URL}`);
-      toast.success("Link copied to clipboard!");
+      toast.success("連結已複製！");
     } catch (err) {
-      toast.error("Failed to copy link");
+      toast.error("複製失敗");
     }
   };
 
@@ -99,7 +101,7 @@ const Settings = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground">Settings</h1>
+          <h1 className="text-xl font-bold text-foreground">設定</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-4">
@@ -107,9 +109,9 @@ const Settings = () => {
           <div className="bg-gradient-to-br from-primary/20 via-accent/20 to-primary/10 rounded-xl p-4 border border-primary/20">
             <div className="flex items-center gap-2 mb-3">
               <Link2 className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm text-foreground">Your Booking Link</h2>
+              <h2 className="font-semibold text-sm text-foreground">您的預約連結</h2>
             </div>
-            
+
             {/* URL Display */}
             <div className="flex items-center gap-2 p-3 bg-background/80 rounded-lg mb-3">
               <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -127,7 +129,7 @@ const Settings = () => {
                 className="flex-1 h-10 rounded-xl gap-2 bg-background"
               >
                 <Copy className="w-4 h-4" />
-                Copy Link
+                複製連結
               </Button>
               <Button
                 onClick={() => setShowQRModal(true)}
@@ -136,7 +138,7 @@ const Settings = () => {
                 className="flex-1 h-10 rounded-xl gap-2 bg-background"
               >
                 <QrCode className="w-4 h-4" />
-                Show QR
+                顯示 QR Code
               </Button>
             </div>
           </div>
@@ -145,11 +147,11 @@ const Settings = () => {
           <div className="bg-card rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-2 mb-4">
               <Store className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Shop Profile</h2>
+              <h2 className="font-semibold text-sm">店家資料</h2>
             </div>
             <div className="space-y-3">
               <div className="space-y-1">
-                <Label htmlFor="shopName" className="text-xs text-muted-foreground">Shop Name</Label>
+                <Label htmlFor="shopName" className="text-xs text-muted-foreground">店家名稱</Label>
                 <Input
                   id="shopName"
                   value={shopName}
@@ -158,7 +160,7 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="address" className="text-xs text-muted-foreground">Address</Label>
+                <Label htmlFor="address" className="text-xs text-muted-foreground">地址</Label>
                 <Input
                   id="address"
                   value={address}
@@ -167,7 +169,7 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="phone" className="text-xs text-muted-foreground">Phone</Label>
+                <Label htmlFor="phone" className="text-xs text-muted-foreground">電話</Label>
                 <Input
                   id="phone"
                   value={phone}
@@ -182,19 +184,19 @@ const Settings = () => {
           <div className="bg-card rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <Clock className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Business Hours</h2>
+              <h2 className="font-semibold text-sm">營業時間</h2>
             </div>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="hours" className="border-0">
                 <AccordionTrigger className="py-2 text-sm text-muted-foreground hover:no-underline">
-                  View / Edit Hours
+                  檢視 / 編輯時間
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2 pt-2">
                     {businessHours.map((hour, index) => (
                       <div key={hour.day} className="flex items-center gap-2">
                         <div className="w-16 text-xs font-medium text-foreground">
-                          {hour.day.slice(0, 3)}
+                          {hour.day}
                         </div>
                         <Switch
                           checked={hour.isOpen}
@@ -232,7 +234,7 @@ const Settings = () => {
                             </Select>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Closed</span>
+                          <span className="text-xs text-muted-foreground">休息</span>
                         )}
                       </div>
                     ))}
@@ -246,7 +248,7 @@ const Settings = () => {
           <div className="bg-card rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <Link2 className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Integrations</h2>
+              <h2 className="font-semibold text-sm">串接設定</h2>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -256,28 +258,28 @@ const Settings = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">LINE Login</p>
-                    <p className="text-xs text-muted-foreground">Social login enabled</p>
+                    <p className="text-xs text-muted-foreground">社群登入已啟用</p>
                   </div>
                 </div>
                 <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
                   <Check className="w-3 h-3 mr-1" />
-                  Connected
+                  已連線
                 </Badge>
               </div>
-              
+
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
                     <span className="text-white text-xs font-bold">$</span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">Payment Gateway</p>
-                    <p className="text-xs text-muted-foreground">LINE Pay / Credit Card</p>
+                    <p className="text-sm font-medium text-foreground">金流串接</p>
+                    <p className="text-xs text-muted-foreground">LINE Pay / 信用卡</p>
                   </div>
                 </div>
                 <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
                   <Check className="w-3 h-3 mr-1" />
-                  Connected
+                  已連線
                 </Badge>
               </div>
             </div>
@@ -287,11 +289,11 @@ const Settings = () => {
           <div className="bg-card rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <Bell className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Notifications</h2>
+              <h2 className="font-semibold text-sm">通知設定</h2>
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Booking Reminders</span>
+                <span className="text-sm text-foreground">預約提醒</span>
                 <Switch
                   checked={notifications.bookingReminder}
                   onCheckedChange={(checked) => setNotifications({ ...notifications, bookingReminder: checked })}
@@ -299,7 +301,7 @@ const Settings = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">New Booking Alerts</span>
+                <span className="text-sm text-foreground">新預約通知</span>
                 <Switch
                   checked={notifications.newBooking}
                   onCheckedChange={(checked) => setNotifications({ ...notifications, newBooking: checked })}
@@ -307,7 +309,7 @@ const Settings = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Low Stock Warnings</span>
+                <span className="text-sm text-foreground">庫存不足提醒</span>
                 <Switch
                   checked={notifications.lowStock}
                   onCheckedChange={(checked) => setNotifications({ ...notifications, lowStock: checked })}
@@ -315,7 +317,7 @@ const Settings = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">Marketing Messages</span>
+                <span className="text-sm text-foreground">行銷訊息</span>
                 <Switch
                   checked={notifications.marketing}
                   onCheckedChange={(checked) => setNotifications({ ...notifications, marketing: checked })}
@@ -329,7 +331,7 @@ const Settings = () => {
           <div className="bg-card rounded-xl p-4 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <Globe className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Language</h2>
+              <h2 className="font-semibold text-sm">語言設定</h2>
             </div>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger className="h-10 rounded-lg">
@@ -350,7 +352,7 @@ const Settings = () => {
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
         <DialogContent className="max-w-[320px] rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="text-center">Booking QR Code</DialogTitle>
+            <DialogTitle className="text-center">預約 QR Code</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center py-4">
             {/* Placeholder QR Code */}
@@ -359,15 +361,14 @@ const Settings = () => {
                 {Array.from({ length: 25 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`w-6 h-6 rounded-sm ${
-                      Math.random() > 0.4 ? "bg-foreground" : "bg-transparent"
-                    }`}
+                    className={`w-6 h-6 rounded-sm ${Math.random() > 0.4 ? "bg-foreground" : "bg-transparent"
+                      }`}
                   />
                 ))}
               </div>
             </div>
             <p className="text-sm text-muted-foreground text-center mb-4">
-              Scan to book an appointment
+              掃描此 QR Code 進行預約
             </p>
             <Button
               onClick={handleCopyLink}
@@ -375,7 +376,7 @@ const Settings = () => {
               className="w-full h-10 rounded-xl gap-2"
             >
               <Copy className="w-4 h-4" />
-              Copy Link
+              複製連結
             </Button>
           </div>
         </DialogContent>

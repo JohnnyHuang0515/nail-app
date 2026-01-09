@@ -10,13 +10,16 @@ import MemberLoginCard from "@/components/booking/MemberLoginCard";
 import CouponSection, { Coupon } from "@/components/booking/CouponSection";
 import PaymentMethodSection, { PaymentMethod } from "@/components/booking/PaymentMethodSection";
 import { cn } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
+import { bookingService } from "@/services/booking.service";
+import { useToast } from "@/hooks/use-toast";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const bookingData = location.state || { 
-    totalPrice: 0, 
-    totalTime: 0, 
+  const bookingData = location.state || {
+    totalPrice: 0,
+    totalTime: 0,
     itemCount: 0,
     selectedDate: new Date().toISOString(),
     selectedTime: "10:00",
@@ -41,22 +44,53 @@ const BookingDetails = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
-  // Price calculations
   const subtotal = bookingData.totalPrice;
   const discount = selectedCoupon?.discount || 0;
   const finalPrice = Math.max(0, subtotal - discount);
   const depositAmount = Math.min(500, Math.floor(finalPrice * 0.3));
 
+  // Create booking mutation
+  const createBookingMutation = useMutation({
+    mutationFn: bookingService.create,
+    onSuccess: (data: any) => {
+      navigate('/booking/confirm', {
+        state: {
+          ...bookingData,
+          bookingId: data.id,
+          bookingRef: data.id.slice(-6).toUpperCase(), // Use last 6 chars as ref
+          customerName: formData.name,
+          customerPhone: formData.phone,
+          customerGender: formData.gender,
+          customerBirthday: formData.birthday?.toISOString(),
+          coupon: selectedCoupon,
+          discount,
+          finalPrice,
+          depositAmount,
+          paymentMethod,
+        }
+      });
+    },
+    onError: (error) => {
+      console.error('Booking failed:', error);
+      toast({
+        title: "預約失敗",
+        description: "無法建立預約，請稍後再試。",
+        variant: "destructive",
+      });
+    }
+  });
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.phone.trim()) {
       newErrors.phone = "請輸入電話號碼";
     } else if (!/^[0-9]{8,15}$/.test(formData.phone.replace(/[-\s]/g, ''))) {
       newErrors.phone = "請輸入正確的電話號碼";
     }
-    
+
     if (!formData.name.trim()) {
       newErrors.name = "請輸入姓名";
     } else if (formData.name.length > 100) {
@@ -84,20 +118,21 @@ const BookingDetails = () => {
 
   const handleConfirm = () => {
     if (validateForm()) {
-      navigate('/booking/confirm', {
-        state: {
-          ...bookingData,
-          customerName: formData.name,
-          customerPhone: formData.phone,
-          customerGender: formData.gender,
-          customerBirthday: formData.birthday?.toISOString(),
-          coupon: selectedCoupon,
-          discount,
-          finalPrice,
-          depositAmount,
-          paymentMethod,
-        }
-      });
+      // Prepare API payload
+      const payload = {
+        staffId: bookingData.stylist?.id || 'no-preference',
+        // TODO: Pass actual service IDs from previous steps. 
+        // Currently bookingData.itemCount is just a number. 
+        // We need to pass service IDs from Booking page -> DateTime -> Details.
+        // For now, using a mock ID if missing, but ideally we fix the flow.
+        serviceIds: bookingData.serviceIds || ['mock-service-id'],
+        scheduledAt: `${format(selectedDate, 'yyyy-MM-dd')}T${bookingData.selectedTime}:00Z`,
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        notes: `Gender: ${formData.gender}, Birthday: ${formData.birthday ? format(formData.birthday, 'yyyy-MM-dd') : 'N/A'}`,
+      };
+
+      createBookingMutation.mutate(payload);
     }
   };
 
@@ -110,7 +145,7 @@ const BookingDetails = () => {
         {/* Header */}
         <div className="flex-shrink-0 px-5 pt-4 pb-3">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => navigate(-1)}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-card hover:bg-muted transition-colors"
             >
@@ -135,7 +170,7 @@ const BookingDetails = () => {
             <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
               📋 預約摘要
             </h2>
-            
+
             <div className="space-y-2 text-sm">
               {/* Stylist */}
               {stylist && (
@@ -146,21 +181,21 @@ const BookingDetails = () => {
                   </span>
                 </div>
               )}
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">日期時間</span>
                 <span className="font-medium text-foreground">
                   {format(selectedDate, "M/d")} • {bookingData.selectedTime}
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">服務項目</span>
                 <span className="font-medium text-foreground">
                   {bookingData.itemCount} 項
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">預估時間</span>
                 <span className="font-medium text-foreground">
@@ -327,17 +362,19 @@ const BookingDetails = () => {
               <span className="text-sm text-muted-foreground">訂金</span>
               <span className="text-lg font-bold text-foreground">${depositAmount}</span>
             </div>
-            <button 
+            <button
               onClick={handleConfirm}
-              className="w-full py-4 bg-milk-tea/80 hover:bg-milk-tea backdrop-blur-xl border border-white/30 rounded-full font-bold text-lg text-white transition-all active:scale-[0.98] shadow-lg"
+              disabled={createBookingMutation.isPending}
+              className="w-full py-4 bg-milk-tea/80 hover:bg-milk-tea backdrop-blur-xl border border-white/30 rounded-full font-bold text-lg text-white transition-all active:scale-[0.98] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {paymentMethod === "pay_at_store" 
-                ? "✨ 確認預約" 
-                : `💳 支付 $${depositAmount} 並預約`
-              }
+              {createBookingMutation.isPending ? "處理中..." : (
+                paymentMethod === "pay_at_store"
+                  ? "✨ 確認預約"
+                  : `💳 支付 $${depositAmount} 並預約`
+              )}
             </button>
           </div>
-          
+
           <BottomNav activeTab="booking" />
         </div>
       </div>

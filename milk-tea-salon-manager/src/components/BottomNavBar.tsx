@@ -9,10 +9,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: Calendar, label: "Schedule", path: "/schedule" },
-  { icon: Users, label: "Clients", path: "/clients" },
-  { icon: Menu, label: "Menu", path: "/menu" },
+  { icon: Home, label: "首頁", path: "/" },
+  { icon: Calendar, label: "行事曆", path: "/schedule" },
+  { icon: Users, label: "客戶", path: "/clients" },
+  { icon: Menu, label: "選單", path: "/menu" },
 ];
 
 const BottomNavBar = () => {

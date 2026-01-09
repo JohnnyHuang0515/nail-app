@@ -1,33 +1,10 @@
 import { DollarSign, CalendarCheck, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DashboardStats } from "@/services/admin.service";
 
-interface StatCard {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  variant: "primary" | "pink" | "blue";
+interface StatsCarouselProps {
+  stats: DashboardStats | null;
 }
-
-const stats: StatCard[] = [
-  {
-    icon: DollarSign,
-    label: "Revenue Today",
-    value: "$12,500",
-    variant: "primary",
-  },
-  {
-    icon: CalendarCheck,
-    label: "Bookings",
-    value: "8",
-    variant: "pink",
-  },
-  {
-    icon: Clock,
-    label: "Pending",
-    value: "2",
-    variant: "blue",
-  },
-];
 
 const variantStyles = {
   primary: "bg-primary text-primary-foreground",
@@ -41,11 +18,32 @@ const iconBgStyles = {
   blue: "bg-pastel-blue-foreground/15",
 };
 
-const StatsCarousel = () => {
+const StatsCarousel = ({ stats }: StatsCarouselProps) => {
+  const displayStats = [
+    {
+      icon: DollarSign,
+      label: "今日營收",
+      value: stats ? `$${stats.revenue.toLocaleString()}` : "-",
+      variant: "primary" as const,
+    },
+    {
+      icon: CalendarCheck,
+      label: "今日預約",
+      value: stats ? stats.bookings.toString() : "-",
+      variant: "pink" as const,
+    },
+    {
+      icon: Clock,
+      label: "待確認",
+      value: stats ? stats.pending.toString() : "-",
+      variant: "blue" as const,
+    },
+  ];
+
   return (
     <div className="px-5 py-2">
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-5 px-5">
-        {stats.map((stat, index) => (
+        {displayStats.map((stat, index) => (
           <div
             key={stat.label}
             className={cn(

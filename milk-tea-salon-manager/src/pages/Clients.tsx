@@ -89,6 +89,10 @@ const avatarColors = [
   "bg-muted text-muted-foreground",
 ];
 
+// ... (Client interface and initialClients remain similar, but maybe we could localize lastVisit formats later or use date-fns. For now keep data.)
+
+// ...
+
 const ClientCard = ({
   client,
   colorIndex,
@@ -123,7 +127,7 @@ const ClientCard = ({
       <div className="flex items-center gap-2">
         {client.isNew ? (
           <span className="px-2 py-1 text-xs font-semibold bg-accent/20 text-accent rounded-full">
-            New
+            新客
           </span>
         ) : (
           <span className="px-2 py-1 text-xs text-muted-foreground bg-muted rounded-full">
@@ -179,7 +183,7 @@ const Clients = () => {
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3">
-          <h1 className="text-xl font-bold text-foreground">Client List</h1>
+          <h1 className="text-xl font-bold text-foreground">客戶列表</h1>
           <button className="p-2 rounded-full hover:bg-muted transition-colors">
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -191,7 +195,7 @@ const Clients = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by name or phone..."
+              placeholder="搜尋姓名或電話..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-3 h-12 bg-muted/50 border-0 rounded-full text-sm placeholder:text-muted-foreground focus-visible:ring-primary/30"
@@ -213,7 +217,7 @@ const Clients = () => {
           ) : (
             <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
               <Search className="w-10 h-10 mb-2 opacity-50" />
-              <p className="text-sm">No clients found</p>
+              <p className="text-sm">找不到客戶</p>
             </div>
           )}
         </div>
@@ -234,21 +238,21 @@ const Clients = () => {
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>Add New Client</DrawerTitle>
+            <DrawerTitle>新增客戶</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Client Name</Label>
+              <Label htmlFor="name">客戶姓名</Label>
               <Input
                 id="name"
-                placeholder="Enter client name"
+                placeholder="輸入客戶姓名"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">電話號碼</Label>
               <Input
                 id="phone"
                 placeholder="0912-345-678"
@@ -264,11 +268,11 @@ const Clients = () => {
               disabled={!form.name.trim() || !form.phone.trim()}
               className="h-12 rounded-xl"
             >
-              Add Client
+              新增
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>

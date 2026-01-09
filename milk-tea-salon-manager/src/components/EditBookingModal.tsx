@@ -65,7 +65,7 @@ const EditBookingModal = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-6 mt-2">
           <h3 className="text-lg font-bold text-foreground">
-            {isNewBooking ? "New Booking" : "Edit Booking"}
+            {isNewBooking ? "新增預約" : "編輯預約"}
           </h3>
           <button
             onClick={onClose}
@@ -83,9 +83,9 @@ const EditBookingModal = ({
               <User className="w-5 h-5 text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Client</p>
+              <p className="text-xs text-muted-foreground">客戶</p>
               <p className="font-semibold text-foreground">
-                {displayBooking.clientName || "Select client..."}
+                {displayBooking.clientName || "選擇客戶..."}
               </p>
             </div>
           </div>
@@ -96,9 +96,9 @@ const EditBookingModal = ({
               <Scissors className="w-5 h-5 text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Service</p>
+              <p className="text-xs text-muted-foreground">服務項目</p>
               <p className="font-semibold text-foreground">
-                {displayBooking.service || "Select service..."}
+                {displayBooking.service || "選擇服務..."}
               </p>
             </div>
           </div>
@@ -109,7 +109,7 @@ const EditBookingModal = ({
               <Clock className="w-5 h-5 text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Time</p>
+              <p className="text-xs text-muted-foreground">時間</p>
               <p className="font-semibold text-foreground">
                 {displayBooking.startTime} - {displayBooking.endTime || "??:??"}
               </p>
@@ -127,9 +127,9 @@ const EditBookingModal = ({
               <Calendar className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Staff</p>
+              <p className="text-xs text-muted-foreground">設計師</p>
               <p className="font-semibold text-foreground">
-                {displayBooking.staffName || "Assign staff..."}
+                {displayBooking.staffName || "選擇設計師..."}
               </p>
             </div>
           </div>
@@ -142,14 +142,14 @@ const EditBookingModal = ({
               onClick={() => onDelete(displayBooking.id)}
               className="flex-1 py-3 rounded-squircle bg-destructive/10 text-destructive font-semibold hover:bg-destructive/20 transition-colors"
             >
-              Delete
+              刪除
             </button>
           )}
           <button
             onClick={() => onSave(displayBooking)}
             className="flex-1 py-3 rounded-squircle bg-accent text-accent-foreground font-bold hover:bg-accent/90 transition-colors"
           >
-            {isNewBooking ? "Create Booking" : "Save Changes"}
+            {isNewBooking ? "建立預約" : "儲存變更"}
           </button>
         </div>
       </div>

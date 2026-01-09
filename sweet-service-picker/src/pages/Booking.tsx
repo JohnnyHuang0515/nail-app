@@ -10,10 +10,10 @@ import StickyFooter from "@/components/StickyFooter";
 const Booking = () => {
   const location = useLocation();
   const stylist = location.state?.stylist || null;
-  
-  const [totals, setTotals] = useState({ totalPrice: 0, totalTime: 0, itemCount: 0 });
 
-  const handleTotalsChange = useCallback((newTotals: { totalPrice: number; totalTime: number; itemCount: number }) => {
+  const [totals, setTotals] = useState({ totalPrice: 0, totalTime: 0, itemCount: 0, serviceIds: [] as string[] });
+
+  const handleTotalsChange = useCallback((newTotals: { totalPrice: number; totalTime: number; itemCount: number; serviceIds: string[] }) => {
     setTotals(newTotals);
   }, []);
 
@@ -25,18 +25,19 @@ const Booking = () => {
           <StylistHeader stylist={stylist} />
           <CategoryTabs />
         </div>
-        
+
         {/* Scrollable Content */}
         <div className="flex-1 overflow-hidden">
           <ServiceList onTotalsChange={handleTotalsChange} />
         </div>
-        
+
         {/* Fixed Bottom Area */}
         <div className="flex-shrink-0 pb-2">
-          <StickyFooter 
+          <StickyFooter
             totalPrice={totals.totalPrice}
             totalTime={totals.totalTime}
             itemCount={totals.itemCount}
+            serviceIds={totals.serviceIds}
             stylist={stylist}
           />
           <BottomNav activeTab="booking" />

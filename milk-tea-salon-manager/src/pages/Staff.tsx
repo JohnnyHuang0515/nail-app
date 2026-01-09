@@ -33,14 +33,14 @@ interface StaffMember {
 }
 
 const initialStaff: StaffMember[] = [
-  { id: "1", name: "Mika", role: "Senior Stylist", isOnShift: true },
-  { id: "2", name: "Yuki", role: "Nail Artist", isOnShift: true },
-  { id: "3", name: "Luna", role: "Junior Stylist", isOnShift: false },
-  { id: "4", name: "Hana", role: "Receptionist", isOnShift: true },
-  { id: "5", name: "Sakura", role: "Nail Artist", isOnShift: false },
+  { id: "1", name: "Mika", role: "資深美甲師", isOnShift: true },
+  { id: "2", name: "Yuki", role: "美甲師", isOnShift: true },
+  { id: "3", name: "Luna", role: "實習美甲師", isOnShift: false },
+  { id: "4", name: "Hana", role: "櫃檯", isOnShift: true },
+  { id: "5", name: "Sakura", role: "美甲師", isOnShift: false },
 ];
 
-const roles = ["Senior Stylist", "Nail Artist", "Junior Stylist", "Receptionist", "Manager"];
+const roles = ["資深美甲師", "美甲師", "實習美甲師", "櫃檯", "店長"];
 
 const avatarColors = [
   "bg-primary/40 text-primary",
@@ -82,7 +82,7 @@ const StaffCard = ({
           <span
             className={`text-xs font-medium ${staff.isOnShift ? "text-green-600" : "text-muted-foreground"}`}
           >
-            {staff.isOnShift ? "On Shift" : "Off Duty"}
+            {staff.isOnShift ? "值班中" : "休假中"}
           </span>
         </div>
       </div>
@@ -174,7 +174,7 @@ const Staff = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground flex-1">Staff Management</h1>
+          <h1 className="text-xl font-bold text-foreground flex-1">員工管理</h1>
         </div>
 
         {/* Tab Switcher */}
@@ -190,7 +190,7 @@ const Staff = () => {
               )}
             >
               <Users className="w-4 h-4" />
-              Team
+              團隊
             </button>
             <button
               onClick={() => setActiveTab("roster")}
@@ -202,7 +202,7 @@ const Staff = () => {
               )}
             >
               <CalendarDays className="w-4 h-4" />
-              Weekly Roster
+              每週班表
             </button>
           </div>
         </div>
@@ -228,7 +228,7 @@ const Staff = () => {
                 className="w-full h-14 mt-4 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary font-semibold"
               >
                 <UserPlus className="w-5 h-5 mr-2" />
-                Add New Staff
+                新增員工
               </Button>
             </div>
           ) : (
@@ -242,28 +242,28 @@ const Staff = () => {
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>
-              {editingStaff ? "Edit Staff" : "Add New Staff"}
+              {editingStaff ? "編輯員工" : "新增員工"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">姓名</Label>
               <Input
                 id="name"
-                placeholder="Enter staff name"
+                placeholder="輸入員工姓名"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">職位</Label>
               <Select
                 value={form.role}
                 onValueChange={(value) => setForm({ ...form, role: value })}
               >
                 <SelectTrigger className="h-12 rounded-xl">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder="選擇職位" />
                 </SelectTrigger>
                 <SelectContent>
                   {roles.map((role) => (
@@ -281,7 +281,7 @@ const Staff = () => {
               disabled={!form.name.trim() || !form.role}
               className="h-12 rounded-xl"
             >
-              {editingStaff ? "Save Changes" : "Add Staff"}
+              {editingStaff ? "儲存變更" : "新增員工"}
             </Button>
             {editingStaff && (
               <Button
@@ -289,12 +289,12 @@ const Staff = () => {
                 variant="destructive"
                 className="h-12 rounded-xl"
               >
-                Delete Staff
+                刪除員工
               </Button>
             )}
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -303,5 +303,4 @@ const Staff = () => {
     </MobileFrame>
   );
 };
-
 export default Staff;

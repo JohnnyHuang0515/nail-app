@@ -24,33 +24,33 @@ import { cn } from "@/lib/utils";
 
 // Mock data for different periods
 const revenueDataThisWeek = [
-  { day: "Mon", revenue: 2400 },
-  { day: "Tue", revenue: 1800 },
-  { day: "Wed", revenue: 3200 },
-  { day: "Thu", revenue: 2800 },
-  { day: "Fri", revenue: 4200 },
-  { day: "Sat", revenue: 5100 },
-  { day: "Sun", revenue: 3800 },
+  { day: "週一", revenue: 2400 },
+  { day: "週二", revenue: 1800 },
+  { day: "週三", revenue: 3200 },
+  { day: "週四", revenue: 2800 },
+  { day: "週五", revenue: 4200 },
+  { day: "週六", revenue: 5100 },
+  { day: "週日", revenue: 3800 },
 ];
 
 const revenueDataThisMonth = [
-  { day: "W1", revenue: 15000 },
-  { day: "W2", revenue: 18500 },
-  { day: "W3", revenue: 22000 },
-  { day: "W4", revenue: 19800 },
+  { day: "第一週", revenue: 15000 },
+  { day: "第二週", revenue: 18500 },
+  { day: "第三週", revenue: 22000 },
+  { day: "第四週", revenue: 19800 },
 ];
 
 const revenueDataLastMonth = [
-  { day: "W1", revenue: 12000 },
-  { day: "W2", revenue: 16000 },
-  { day: "W3", revenue: 14500 },
-  { day: "W4", revenue: 17200 },
+  { day: "第一週", revenue: 12000 },
+  { day: "第二週", revenue: 16000 },
+  { day: "第三週", revenue: 14500 },
+  { day: "第四週", revenue: 17200 },
 ];
 
 const serviceBreakdown = [
-  { name: "Hand", value: 45, color: "hsl(34, 36%, 68%)" },
-  { name: "Foot", value: 30, color: "hsl(340, 75%, 85%)" },
-  { name: "Care", value: 25, color: "hsl(210, 70%, 85%)" },
+  { name: "手部", value: 45, color: "hsl(34, 36%, 68%)" },
+  { name: "足部", value: 30, color: "hsl(340, 75%, 85%)" },
+  { name: "保養", value: 25, color: "hsl(210, 70%, 85%)" },
 ];
 
 const staffRanking = [
@@ -61,9 +61,9 @@ const staffRanking = [
   { id: "5", name: "Sakura", revenue: 28000, avatar: "SA", color: "bg-blue-200 text-blue-600" },
 ];
 
-const metricsData: Record<string, { 
-  totalSales: number; 
-  newCustomers: number; 
+const metricsData: Record<string, {
+  totalSales: number;
+  newCustomers: number;
   avgTicket: number;
 }> = {
   "this-week": { totalSales: 23300, newCustomers: 12, avgTicket: 850 },
@@ -112,7 +112,7 @@ const Reports = () => {
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-background">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4">
           <button
@@ -121,15 +121,15 @@ const Reports = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground flex-1">Reports</h1>
+          <h1 className="text-xl font-bold text-foreground flex-1">報表分析</h1>
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-32 h-9 rounded-xl text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="this-week">This Week</SelectItem>
-              <SelectItem value="this-month">This Month</SelectItem>
-              <SelectItem value="last-month">Last Month</SelectItem>
+              <SelectItem value="this-week">本週</SelectItem>
+              <SelectItem value="this-month">本月</SelectItem>
+              <SelectItem value="last-month">上月</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -139,19 +139,19 @@ const Reports = () => {
           <div className="grid grid-cols-3 gap-2">
             <MetricCard
               icon={DollarSign}
-              label="Total Sales"
+              label="總銷售額"
               value={`$${(metrics.totalSales / 1000).toFixed(1)}k`}
               color="bg-primary/20 text-primary"
             />
             <MetricCard
               icon={Users}
-              label="New Clients"
+              label="新增客戶"
               value={metrics.newCustomers.toString()}
               color="bg-accent/20 text-accent"
             />
             <MetricCard
               icon={Receipt}
-              label="Avg. Ticket"
+              label="平均客單"
               value={`$${metrics.avgTicket}`}
               color="bg-pastel-pink text-pastel-pink-foreground"
             />
@@ -161,7 +161,7 @@ const Reports = () => {
           <div className="bg-card rounded-xl p-3 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-sm">Daily Revenue</h2>
+              <h2 className="font-semibold text-sm">每日營收趨勢</h2>
             </div>
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
@@ -186,7 +186,7 @@ const Reports = () => {
                       borderRadius: "12px",
                       fontSize: "12px",
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, "Revenue"]}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, "營收"]}
                   />
                   <Bar
                     dataKey="revenue"
@@ -202,7 +202,7 @@ const Reports = () => {
           <div className="bg-card rounded-xl p-3 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <Trophy className="w-4 h-4 text-yellow-500" />
-              <h2 className="font-semibold text-sm">Top Stylists by Revenue</h2>
+              <h2 className="font-semibold text-sm">設計師業績排行</h2>
             </div>
             <div className="space-y-2">
               {staffRanking.map((staff, index) => (
@@ -217,9 +217,9 @@ const Reports = () => {
                   <div className={cn(
                     "w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs",
                     index === 0 ? "bg-yellow-400 text-yellow-900" :
-                    index === 1 ? "bg-slate-300 text-slate-700" :
-                    index === 2 ? "bg-amber-600 text-white" :
-                    "bg-muted text-muted-foreground"
+                      index === 1 ? "bg-slate-300 text-slate-700" :
+                        index === 2 ? "bg-amber-600 text-white" :
+                          "bg-muted text-muted-foreground"
                   )}>
                     {index + 1}
                   </div>
@@ -251,7 +251,7 @@ const Reports = () => {
 
           {/* Service Popularity Pie Chart */}
           <div className="bg-card rounded-xl p-3 shadow-soft">
-            <h2 className="font-semibold text-sm mb-2">Service Popularity</h2>
+            <h2 className="font-semibold text-sm mb-2">服務項目佔比</h2>
             <div className="flex items-center">
               <div className="w-28 h-28">
                 <ResponsiveContainer width="100%" height="100%">

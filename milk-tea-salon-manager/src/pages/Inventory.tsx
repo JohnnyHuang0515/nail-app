@@ -42,25 +42,25 @@ interface UsageLog {
   date: string;
 }
 
-const units = ["bottles", "tubes", "packs", "pieces", "boxes", "ml", "g"];
+const units = ["瓶", "條", "包", "件", "盒", "ml", "g"];
 
 const initialProducts: Product[] = [
-  { id: "1", name: "UV Gel - Clear", brand: "OPI", category: "consumables", stock: 8, unit: "bottles" },
-  { id: "2", name: "Nail Polish - Rose Pink", brand: "Essie", category: "consumables", stock: 2, unit: "bottles" },
-  { id: "3", name: "Gel Remover", brand: "CND", category: "consumables", stock: 5, unit: "bottles" },
-  { id: "4", name: "Base Coat", brand: "OPI", category: "consumables", stock: 1, unit: "bottles" },
-  { id: "5", name: "Top Coat - Matte", brand: "Essie", category: "consumables", stock: 4, unit: "bottles" },
-  { id: "6", name: "Cuticle Oil", brand: "CND", category: "retail", stock: 12, unit: "bottles" },
-  { id: "7", name: "Hand Cream - Lavender", brand: "L'Occitane", category: "retail", stock: 6, unit: "tubes" },
-  { id: "8", name: "Nail Strengthener", brand: "OPI", category: "retail", stock: 2, unit: "bottles" },
-  { id: "9", name: "Foot Cream", brand: "Burt's Bees", category: "retail", stock: 0, unit: "tubes" },
+  { id: "1", name: "透明建構膠", brand: "OPI", category: "consumables", stock: 8, unit: "瓶" },
+  { id: "2", name: "玫瑰粉指甲油", brand: "Essie", category: "consumables", stock: 2, unit: "瓶" },
+  { id: "3", name: "卸甲液", brand: "CND", category: "consumables", stock: 5, unit: "瓶" },
+  { id: "4", name: "基底膠", brand: "OPI", category: "consumables", stock: 1, unit: "瓶" },
+  { id: "5", name: "霧面封層膠", brand: "Essie", category: "consumables", stock: 4, unit: "瓶" },
+  { id: "6", name: "指緣油", brand: "CND", category: "retail", stock: 12, unit: "瓶" },
+  { id: "7", name: "薰衣草護手霜", brand: "L'Occitane", category: "retail", stock: 6, unit: "條" },
+  { id: "8", name: "硬甲油", brand: "OPI", category: "retail", stock: 2, unit: "瓶" },
+  { id: "9", name: "足部修護霜", brand: "Burt's Bees", category: "retail", stock: 0, unit: "條" },
 ];
 
-const ProductItem = ({ 
-  product, 
+const ProductItem = ({
+  product,
   onTap,
-}: { 
-  product: Product; 
+}: {
+  product: Product;
   onTap: (product: Product) => void;
 }) => {
   const isLowStock = product.stock < 3;
@@ -72,9 +72,9 @@ const ProductItem = ({
       onClick={() => onTap(product)}
       className={cn(
         "w-full bg-card rounded-xl p-3 border transition-all text-left hover:shadow-md active:scale-[0.98]",
-        isOutOfStock ? "border-destructive/30 bg-destructive/5" : 
-        isLowStock ? "border-amber-400/30 bg-amber-50/50" : 
-        "border-border"
+        isOutOfStock ? "border-destructive/30 bg-destructive/5" :
+          isLowStock ? "border-amber-400/30 bg-amber-50/50" :
+            "border-border"
       )}
     >
       <div className="flex items-center gap-3">
@@ -82,9 +82,9 @@ const ProductItem = ({
         <div className={cn(
           "w-3 h-3 rounded-full shrink-0",
           isOutOfStock ? "bg-destructive" :
-          isLowStock ? "bg-amber-500" : 
-          isGoodStock ? "bg-green-500" :
-          "bg-muted-foreground"
+            isLowStock ? "bg-amber-500" :
+              isGoodStock ? "bg-green-500" :
+                "bg-muted-foreground"
         )} />
 
         {/* Info */}
@@ -102,12 +102,12 @@ const ProductItem = ({
         {/* Badge */}
         {isOutOfStock && (
           <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-5 shrink-0">
-            Out
+            缺貨
           </Badge>
         )}
         {isLowStock && !isOutOfStock && (
           <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[9px] px-1.5 py-0 h-5 shrink-0">
-            Low
+            短缺
           </Badge>
         )}
 
@@ -188,7 +188,7 @@ const Inventory = () => {
       id: Date.now().toString(),
       productId: loggingProduct.id,
       amount: logForm.amount,
-      customerName: logForm.customerName || "Walk-in",
+      customerName: logForm.customerName || "現場客",
       date: new Date().toLocaleDateString(),
     };
 
@@ -203,7 +203,7 @@ const Inventory = () => {
       )
     );
 
-    toast.success(`Usage logged: ${logForm.amount} for ${logForm.customerName || "Walk-in"}`);
+    toast.success(`已記錄使用量: ${logForm.amount} - ${logForm.customerName || "現場客"}`);
     setIsLogDrawerOpen(false);
   };
 
@@ -215,13 +215,13 @@ const Inventory = () => {
         prev.map((p) =>
           p.id === editingProduct.id
             ? {
-                ...p,
-                name: form.name.trim(),
-                brand: form.brand.trim(),
-                stock: parseInt(form.stock) || 0,
-                unit: form.unit,
-                category: form.category as "consumables" | "retail",
-              }
+              ...p,
+              name: form.name.trim(),
+              brand: form.brand.trim(),
+              stock: parseInt(form.stock) || 0,
+              unit: form.unit,
+              category: form.category as "consumables" | "retail",
+            }
             : p
         )
       );
@@ -258,10 +258,10 @@ const Inventory = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground flex-1">Inventory</h1>
+          <h1 className="text-xl font-bold text-foreground flex-1">庫存管理</h1>
           {lowStockCount > 0 && (
             <Badge variant="destructive" className="text-xs mr-2">
-              {lowStockCount} Low
+              {lowStockCount} 短缺
             </Badge>
           )}
           <button
@@ -277,10 +277,10 @@ const Inventory = () => {
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "consumables" | "retail")}>
             <TabsList className="w-full bg-muted/50">
               <TabsTrigger value="consumables" className="flex-1 text-sm data-[state=active]:bg-card">
-                Consumables
+                消耗品
               </TabsTrigger>
               <TabsTrigger value="retail" className="flex-1 text-sm data-[state=active]:bg-card">
-                Retail
+                零售商品
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -290,15 +290,15 @@ const Inventory = () => {
         <div className="px-5 py-2 flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span>Good ({">"} 5)</span>
+            <span>充足 ({">"} 5)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Low ({"<"} 3)</span>
+            <span>短缺 ({"<"} 3)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-destructive" />
-            <span>Out</span>
+            <span>缺貨</span>
           </div>
         </div>
 
@@ -308,7 +308,7 @@ const Inventory = () => {
             {filteredProducts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No products in this category</p>
+                <p className="text-sm">此分類尚無商品</p>
               </div>
             ) : (
               filteredProducts.map((product) => (
@@ -336,7 +336,7 @@ const Inventory = () => {
             {/* Product Info with Stock Adjust */}
             <div className="p-4 bg-muted/50 rounded-xl">
               <p className="text-sm text-muted-foreground mb-3">{selectedProduct?.brand}</p>
-              
+
               {/* Stock Adjustment */}
               <div className="flex items-center justify-center gap-4">
                 <button
@@ -372,8 +372,8 @@ const Inventory = () => {
               >
                 <ClipboardList className="w-5 h-5 text-accent" />
                 <div>
-                  <p className="font-semibold">Log Usage</p>
-                  <p className="text-xs text-muted-foreground font-normal">Record usage for a customer</p>
+                  <p className="font-semibold">登記使用量</p>
+                  <p className="text-xs text-muted-foreground font-normal">記錄客戶使用量</p>
                 </div>
               </Button>
               <Button
@@ -383,8 +383,8 @@ const Inventory = () => {
               >
                 <Pencil className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="font-semibold">Edit Product</p>
-                  <p className="text-xs text-muted-foreground font-normal">Update name, brand, or unit</p>
+                  <p className="font-semibold">編輯商品</p>
+                  <p className="text-xs text-muted-foreground font-normal">更新名稱、品牌或單位</p>
                 </div>
               </Button>
             </div>
@@ -392,7 +392,7 @@ const Inventory = () => {
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="ghost" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -405,7 +405,7 @@ const Inventory = () => {
           <DrawerHeader>
             <DrawerTitle className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
-              Log Usage - {loggingProduct?.name}
+              登記使用量 - {loggingProduct?.name}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
@@ -418,25 +418,25 @@ const Inventory = () => {
               </div>
               <div className="text-right">
                 <p className="font-bold text-sm">{loggingProduct?.stock}</p>
-                <p className="text-xs text-muted-foreground">{loggingProduct?.unit} left</p>
+                <p className="text-xs text-muted-foreground">剩餘 {loggingProduct?.unit}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount Used</Label>
+              <Label htmlFor="amount">使用數量</Label>
               <Input
                 id="amount"
-                placeholder="e.g., 5ml, 2g, 1 coat"
+                placeholder="例如: 5ml, 2g, 1層"
                 value={logForm.amount}
                 onChange={(e) => setLogForm({ ...logForm, amount: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="customer">Customer Name (Optional)</Label>
+              <Label htmlFor="customer">客戶姓名 (選填)</Label>
               <Input
                 id="customer"
-                placeholder="e.g., Emily Chen"
+                placeholder="例如: 王小美"
                 value={logForm.customerName}
                 onChange={(e) => setLogForm({ ...logForm, customerName: e.target.value })}
                 className="h-12 rounded-xl"
@@ -446,10 +446,10 @@ const Inventory = () => {
             {/* Recent Logs */}
             {recentLogs.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Recent Usage</p>
+                <p className="text-xs font-medium text-muted-foreground">最近使用紀錄</p>
                 {recentLogs.map((log) => (
                   <div key={log.id} className="flex items-center justify-between text-xs p-2 bg-muted/30 rounded-lg">
-                    <span>{log.amount} for {log.customerName}</span>
+                    <span>{log.amount} - {log.customerName}</span>
                     <span className="text-muted-foreground">{log.date}</span>
                   </div>
                 ))}
@@ -462,11 +462,11 @@ const Inventory = () => {
               disabled={!logForm.amount.trim()}
               className="h-12 rounded-xl"
             >
-              Log Usage
+              確認登記
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -478,48 +478,48 @@ const Inventory = () => {
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>
-              {editingProduct ? "Edit Product" : "Add New Product"}
+              {editingProduct ? "編輯商品" : "新增商品"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
+              <Label htmlFor="name">商品名稱</Label>
               <Input
                 id="name"
-                placeholder="Enter product name"
+                placeholder="輸入商品名稱"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brand">Brand</Label>
+              <Label htmlFor="brand">品牌</Label>
               <Input
                 id="brand"
-                placeholder="Enter brand name"
+                placeholder="輸入品牌名稱"
                 value={form.brand}
                 onChange={(e) => setForm({ ...form, brand: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">分類</Label>
               <Select
                 value={form.category}
                 onValueChange={(value) => setForm({ ...form, category: value })}
               >
                 <SelectTrigger className="h-12 rounded-xl">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="選擇分類" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="consumables">Consumables</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
+                  <SelectItem value="consumables">消耗品</SelectItem>
+                  <SelectItem value="retail">零售商品</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="stock">Stock Quantity</Label>
+                <Label htmlFor="stock">庫存數量</Label>
                 <Input
                   id="stock"
                   type="number"
@@ -530,13 +530,13 @@ const Inventory = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">Unit</Label>
+                <Label htmlFor="unit">單位</Label>
                 <Select
                   value={form.unit}
                   onValueChange={(value) => setForm({ ...form, unit: value })}
                 >
                   <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue placeholder="Select unit" />
+                    <SelectValue placeholder="選擇單位" />
                   </SelectTrigger>
                   <SelectContent>
                     {units.map((unit) => (
@@ -555,7 +555,7 @@ const Inventory = () => {
               disabled={!form.name.trim() || !form.unit || !form.category}
               className="h-12 rounded-xl"
             >
-              {editingProduct ? "Save Changes" : "Add Product"}
+              {editingProduct ? "儲存變更" : "新增商品"}
             </Button>
             {editingProduct && (
               <Button
@@ -563,12 +563,12 @@ const Inventory = () => {
                 variant="destructive"
                 className="h-12 rounded-xl"
               >
-                Delete Product
+                刪除商品
               </Button>
             )}
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>

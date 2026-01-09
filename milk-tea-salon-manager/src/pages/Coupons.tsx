@@ -28,10 +28,10 @@ interface Coupon {
 }
 
 const initialCoupons: Coupon[] = [
-  { id: "1", title: "New Member", discount: "10% Off", expiry: "Dec 31, 2024", isActive: true, usedCount: 45 },
-  { id: "2", title: "Holiday Special", discount: "$100 Off", expiry: "Jan 15, 2025", isActive: true, usedCount: 23 },
-  { id: "3", title: "Refer a Friend", discount: "15% Off", expiry: "Feb 28, 2025", isActive: false, usedCount: 12 },
-  { id: "4", title: "Birthday Treat", discount: "20% Off", expiry: "Ongoing", isActive: true, usedCount: 89 },
+  { id: "1", title: "新會員優惠", discount: "9折", expiry: "2024/12/31", isActive: true, usedCount: 45 },
+  { id: "2", title: "節日特惠", discount: "折抵 $100", expiry: "2025/01/15", isActive: true, usedCount: 23 },
+  { id: "3", title: "好友推薦", discount: "85折", expiry: "2025/02/28", isActive: false, usedCount: 12 },
+  { id: "4", title: "生日禮", discount: "8折", expiry: "長期有效", isActive: true, usedCount: 89 },
 ];
 
 const CouponCard = ({
@@ -50,7 +50,7 @@ const CouponCard = ({
       {/* Ticket notches */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-background rounded-r-full" />
       <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-background rounded-l-full" />
-      
+
       {/* Dashed line */}
       <div className="absolute left-6 right-6 top-1/2 border-t-2 border-dashed border-muted-foreground/20" />
 
@@ -72,15 +72,15 @@ const CouponCard = ({
                 : "bg-muted text-muted-foreground hover:bg-muted"
             )}
           >
-            {coupon.isActive ? "Active" : "Paused"}
+            {coupon.isActive ? "進行中" : "已暫停"}
           </Badge>
         </div>
 
         {/* Bottom section */}
         <div className="flex items-center justify-between pt-4">
           <div className="text-sm text-muted-foreground">
-            <p>Expiry: {coupon.expiry}</p>
-            <p className="text-xs mt-0.5">{coupon.usedCount} times used</p>
+            <p>有效期限: {coupon.expiry}</p>
+            <p className="text-xs mt-0.5">已使用 {coupon.usedCount} 次</p>
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -170,8 +170,8 @@ const Coupons = () => {
   const handleSendBroadcast = () => {
     if (!broadcastMessage.trim()) return;
     toast({
-      title: "Broadcast Sent",
-      description: "Your message has been sent to all LINE followers.",
+      title: "訊息已發送",
+      description: "您的推播訊息已發送給所有 LINE 好友。",
     });
     setBroadcastMessage("");
   };
@@ -187,7 +187,7 @@ const Coupons = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground flex-1">Coupons & Marketing</h1>
+          <h1 className="text-xl font-bold text-foreground flex-1">優惠券與行銷</h1>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-4">
@@ -197,13 +197,13 @@ const Coupons = () => {
             className="w-full h-12 rounded-2xl bg-accent hover:bg-accent/90"
           >
             <Plus className="w-5 h-5 mr-2" />
-            Create Campaign
+            建立新活動
           </Button>
 
           {/* Coupons Section */}
           <div>
             <h2 className="font-semibold text-sm text-muted-foreground mb-3">
-              Active Campaigns ({coupons.filter((c) => c.isActive).length})
+              進行中的活動 ({coupons.filter((c) => c.isActive).length})
             </h2>
             <div className="space-y-3">
               {coupons.map((coupon) => (
@@ -222,10 +222,10 @@ const Coupons = () => {
           <div className="bg-card rounded-2xl p-4 shadow-soft">
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare className="w-4 h-4 text-accent" />
-              <h2 className="font-semibold text-sm">Broadcast to LINE Followers</h2>
+              <h2 className="font-semibold text-sm">LINE 推播訊息</h2>
             </div>
             <Textarea
-              placeholder="Type your message here..."
+              placeholder="在此輸入訊息內容..."
               value={broadcastMessage}
               onChange={(e) => setBroadcastMessage(e.target.value)}
               className="min-h-[100px] rounded-xl border-muted resize-none mb-3"
@@ -237,7 +237,7 @@ const Coupons = () => {
               className="w-full h-10 rounded-xl"
             >
               <Send className="w-4 h-4 mr-2" />
-              Send Broadcast
+              發送推播
             </Button>
           </div>
         </div>
@@ -248,35 +248,35 @@ const Coupons = () => {
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>
-              {editingCoupon ? "Edit Campaign" : "Create Campaign"}
+              {editingCoupon ? "編輯活動" : "建立新活動"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Campaign Title</Label>
+              <Label htmlFor="title">活動標題</Label>
               <Input
                 id="title"
-                placeholder="e.g., New Member"
+                placeholder="例如: 新會員優惠"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="discount">Discount</Label>
+              <Label htmlFor="discount">折扣內容</Label>
               <Input
                 id="discount"
-                placeholder="e.g., 10% Off or $100 Off"
+                placeholder="例如: 9折 或 折抵 $100"
                 value={form.discount}
                 onChange={(e) => setForm({ ...form, discount: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="expiry">Expiry Date</Label>
+              <Label htmlFor="expiry">有效期限</Label>
               <Input
                 id="expiry"
-                placeholder="e.g., Dec 31, 2024"
+                placeholder="例如: 2024/12/31"
                 value={form.expiry}
                 onChange={(e) => setForm({ ...form, expiry: e.target.value })}
                 className="h-12 rounded-xl"
@@ -289,11 +289,11 @@ const Coupons = () => {
               disabled={!form.title.trim() || !form.discount.trim() || !form.expiry.trim()}
               className="h-12 rounded-xl"
             >
-              {editingCoupon ? "Save Changes" : "Create Campaign"}
+              {editingCoupon ? "儲存變更" : "建立活動"}
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>

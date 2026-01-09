@@ -36,22 +36,22 @@ interface Service {
   category: string;
 }
 
-const initialCategories = ["Hand", "Foot", "Care", "Add-ons"];
+const initialCategories = ["手部", "足部", "保養", "加購"];
 
 const initialServices: Service[] = [
-  { id: "1", name: "Classic Manicure", duration: 45, price: 500, category: "Hand" },
-  { id: "2", name: "Gel Manicure", duration: 60, price: 800, category: "Hand" },
-  { id: "3", name: "Nail Art (per nail)", duration: 15, price: 150, category: "Hand" },
-  { id: "4", name: "Full Set Acrylic", duration: 120, price: 1500, category: "Hand" },
-  { id: "5", name: "Classic Pedicure", duration: 60, price: 700, category: "Foot" },
-  { id: "6", name: "Gel Pedicure", duration: 75, price: 900, category: "Foot" },
-  { id: "7", name: "Spa Pedicure", duration: 90, price: 1200, category: "Foot" },
-  { id: "8", name: "Gel Removal", duration: 20, price: 300, category: "Care" },
-  { id: "9", name: "Nail Repair", duration: 15, price: 200, category: "Care" },
-  { id: "10", name: "Cuticle Treatment", duration: 20, price: 250, category: "Care" },
-  { id: "11", name: "Hand Massage", duration: 15, price: 200, category: "Add-ons" },
-  { id: "12", name: "Paraffin Treatment", duration: 20, price: 350, category: "Add-ons" },
-  { id: "13", name: "Chrome/Mirror Finish", duration: 30, price: 400, category: "Add-ons" },
+  { id: "1", name: "經典手部單色", duration: 45, price: 500, category: "手部" },
+  { id: "2", name: "凝膠手部單色", duration: 60, price: 800, category: "手部" },
+  { id: "3", name: "造型設計 (單指)", duration: 15, price: 150, category: "手部" },
+  { id: "4", name: "水晶指甲延甲", duration: 120, price: 1500, category: "手部" },
+  { id: "5", name: "經典足部單色", duration: 60, price: 700, category: "足部" },
+  { id: "6", name: "凝膠足部單色", duration: 75, price: 900, category: "足部" },
+  { id: "7", name: "深層足部保養", duration: 90, price: 1200, category: "足部" },
+  { id: "8", name: "卸甲", duration: 20, price: 300, category: "保養" },
+  { id: "9", name: "指甲修補", duration: 15, price: 200, category: "保養" },
+  { id: "10", name: "甘皮處理", duration: 20, price: 250, category: "保養" },
+  { id: "11", name: "手部按摩", duration: 15, price: 200, category: "加購" },
+  { id: "12", name: "蜜蠟保養", duration: 20, price: 350, category: "加購" },
+  { id: "13", name: "鏡面粉/極光粉", duration: 30, price: 400, category: "加購" },
 ];
 
 const ServiceItem = ({
@@ -67,7 +67,7 @@ const ServiceItem = ({
         <p className="font-semibold text-foreground">{service.name}</p>
         <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
           <Clock className="w-3.5 h-3.5" />
-          <span>{service.duration}m</span>
+          <span>{service.duration} 分鐘</span>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -128,12 +128,12 @@ const Services = () => {
         prev.map((s) =>
           s.id === editingService.id
             ? {
-                ...s,
-                name: form.name.trim(),
-                duration: parseInt(form.duration) || s.duration,
-                price: parseInt(form.price) || s.price,
-                category: form.category,
-              }
+              ...s,
+              name: form.name.trim(),
+              duration: parseInt(form.duration) || s.duration,
+              price: parseInt(form.price) || s.price,
+              category: form.category,
+            }
             : s
         )
       );
@@ -198,7 +198,7 @@ const Services = () => {
     // Don't delete if it has services
     const hasServices = services.some((s) => s.category === cat);
     if (hasServices) return;
-    
+
     setCategories((prev) => prev.filter((c) => c !== cat));
     if (activeCategory === cat && categories.length > 1) {
       setActiveCategory(categories.find((c) => c !== cat) || categories[0]);
@@ -220,7 +220,7 @@ const Services = () => {
           >
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground flex-1">Services & Prices</h1>
+          <h1 className="text-xl font-bold text-foreground flex-1">服務價目表</h1>
           <button
             onClick={() => setIsCategoryModalOpen(true)}
             className="p-2 rounded-full hover:bg-muted transition-colors"
@@ -268,7 +268,7 @@ const Services = () => {
           ) : (
             <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
               <Clock className="w-10 h-10 mb-2 opacity-50" />
-              <p className="text-sm">No services in this category</p>
+              <p className="text-sm">此分類尚無服務項目</p>
             </div>
           )}
         </div>
@@ -279,28 +279,28 @@ const Services = () => {
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>
-              {editingService ? "Edit Service" : "Add New Service"}
+              {editingService ? "編輯服務" : "新增服務"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Service Name</Label>
+              <Label htmlFor="name">服務名稱</Label>
               <Input
                 id="name"
-                placeholder="Enter service name"
+                placeholder="輸入服務名稱"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">分類</Label>
               <Select
                 value={form.category}
                 onValueChange={(value) => setForm({ ...form, category: value })}
               >
                 <SelectTrigger className="h-12 rounded-xl">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="選擇分類" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -313,7 +313,7 @@ const Services = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (min)</Label>
+                <Label htmlFor="duration">時間 (分鐘)</Label>
                 <Input
                   id="duration"
                   type="number"
@@ -324,7 +324,7 @@ const Services = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">價格 ($)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -342,7 +342,7 @@ const Services = () => {
               disabled={!form.name.trim() || !form.duration || !form.price || !form.category}
               className="h-12 rounded-xl"
             >
-              {editingService ? "Save Changes" : "Add Service"}
+              {editingService ? "儲存變更" : "新增服務"}
             </Button>
             {editingService && (
               <Button
@@ -350,12 +350,12 @@ const Services = () => {
                 variant="destructive"
                 className="h-12 rounded-xl"
               >
-                Delete Service
+                刪除服務
               </Button>
             )}
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -366,13 +366,13 @@ const Services = () => {
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
         <DialogContent className="max-w-[360px] rounded-3xl">
           <DialogHeader>
-            <DialogTitle>Manage Categories</DialogTitle>
+            <DialogTitle>管理分類</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Add new category */}
             <div className="flex gap-2">
               <Input
-                placeholder="New category name"
+                placeholder="新分類名稱"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 className="h-10 rounded-xl flex-1"
@@ -462,7 +462,7 @@ const Services = () => {
             </div>
 
             <p className="text-xs text-muted-foreground text-center">
-              Categories with services cannot be deleted
+              含有服務項目的分類無法刪除
             </p>
           </div>
         </DialogContent>

@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import servicesRoutes from './routes/services.routes';
 import staffRoutes from './routes/staff.routes';
+import bookingsRoutes from './routes/bookings.routes';
+
+import adminRoutes from './routes/admin.routes';
 
 dotenv.config();
 
@@ -16,6 +19,7 @@ app.use(cors({
         'http://localhost:5173',      // Vite dev server (default)
         'http://localhost:5174',      // Alternative port
         'http://localhost:8080',      // Vite dev server (actual)
+        'http://localhost:8081',      // Admin Panel
         'https://liff.line.me',       // LINE LIFF domain
         ...(process.env.CORS_ORIGIN?.split(',').filter(Boolean) || []),
     ],
@@ -33,6 +37,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/bookings', bookingsRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Nail Salon API v1.0' });

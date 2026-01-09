@@ -22,7 +22,7 @@ const StylistHeader = ({ stylist }: StylistHeaderProps) => {
     <div className="px-5 py-4 bg-card border-b border-border">
       <div className="flex items-center gap-4">
         {/* Back Button */}
-        <button 
+        <button
           onClick={() => navigate("/select-stylist")}
           className="w-10 h-10 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
         >
@@ -35,7 +35,7 @@ const StylistHeader = ({ stylist }: StylistHeaderProps) => {
             {isNoPreference ? (
               <span className="text-2xl">🎲</span>
             ) : stylist?.avatar ? (
-              <img 
+              <img
                 src={stylist.avatar}
                 alt={stylist.name}
                 className="w-full h-full object-cover"
@@ -50,7 +50,7 @@ const StylistHeader = ({ stylist }: StylistHeaderProps) => {
             </div>
           )}
         </div>
-        
+
         {/* Info */}
         <div className="flex-1">
           <h1 className="text-lg font-bold text-foreground">
@@ -60,7 +60,7 @@ const StylistHeader = ({ stylist }: StylistHeaderProps) => {
             {stylist?.title || "請選擇您需要的服務項目"}
           </p>
         </div>
-        
+
         {/* Rating */}
         {stylist && !isNoPreference && stylist.rating > 0 && (
           <div className="flex items-center gap-1 bg-muted px-3 py-1.5 rounded-full">

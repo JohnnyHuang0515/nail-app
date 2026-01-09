@@ -6,11 +6,11 @@ import BottomSheet from "./BottomSheet";
 import { serviceService, type Service } from "@/services/service.service";
 
 const addOns = [
-  { id: 1, name: "Hard Gel Overlay", price: 300, time: 30 },
-  { id: 2, name: "Matte Top Coat", price: 100, time: 10 },
-  { id: 3, name: "Chrome Powder", price: 200, time: 15 },
-  { id: 4, name: "Nail Art (2 nails)", price: 250, time: 20 },
-  { id: 5, name: "Gel Removal", price: 150, time: 15 },
+  { id: 1, name: "加厚凝膠", price: 300, time: 30 },
+  { id: 2, name: "霧面封層", price: 100, time: 10 },
+  { id: 3, name: "鏡面粉", price: 200, time: 15 },
+  { id: 4, name: "造型指甲 (2指)", price: 250, time: 20 },
+  { id: 5, name: "卸甲", price: 150, time: 15 },
 ];
 
 interface BookedService {
@@ -22,7 +22,7 @@ interface BookedService {
 }
 
 interface ServiceListProps {
-  onTotalsChange?: (totals: { totalPrice: number; totalTime: number; itemCount: number }) => void;
+  onTotalsChange?: (totals: { totalPrice: number; totalTime: number; itemCount: number; serviceIds: string[] }) => void;
 }
 
 const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
@@ -133,8 +133,13 @@ const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
 
   // Notify parent
   useEffect(() => {
-    onTotalsChange?.({ totalPrice, totalTime, itemCount: bookedServices.length });
-  }, [totalPrice, totalTime, bookedServices.length, onTotalsChange]);
+    onTotalsChange?.({
+      totalPrice,
+      totalTime,
+      itemCount: bookedServices.length,
+      serviceIds: bookedServices.map(b => b.serviceId)
+    });
+  }, [totalPrice, totalTime, bookedServices.length, bookedServices, onTotalsChange]);
 
   const isServiceBooked = (id: string) => bookedServices.some(b => b.serviceId === id);
 

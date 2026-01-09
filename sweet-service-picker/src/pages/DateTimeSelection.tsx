@@ -2,29 +2,11 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay, addWeeks, subWeeks } from "date-fns";
+import { zhTW } from "date-fns/locale";
 import MobileFrame from "@/components/MobileFrame";
 import BottomNav from "@/components/BottomNav";
-
-// Mock available time slots
-const generateTimeSlots = (date: Date) => {
-  const slots = [
-    { time: "10:00", available: true },
-    { time: "10:30", available: true },
-    { time: "11:00", available: false },
-    { time: "11:30", available: true },
-    { time: "13:00", available: true },
-    { time: "13:30", available: true },
-    { time: "14:00", available: false },
-    { time: "14:30", available: true },
-    { time: "15:00", available: true },
-    { time: "15:30", available: false },
-    { time: "16:00", available: true },
-    { time: "16:30", available: true },
-    { time: "17:00", available: true },
-    { time: "17:30", available: false },
-  ];
-  return slots;
-};
+import { useQuery } from "@tanstack/react-query";
+import { bookingService } from "@/services/booking.service";
 
 const DateTimeSelection = () => {
   const navigate = useNavigate();
@@ -36,7 +18,15 @@ const DateTimeSelection = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
-  const timeSlots = generateTimeSlots(selectedDate);
+
+  // Fetch availability from API
+  const { data: timeSlots, isLoading } = useQuery({
+    queryKey: ['availability', bookingData.stylist?.id, selectedDate],
+    queryFn: () => bookingService.getAvailability(
+      bookingData.stylist?.id || 'no-preference',
+      format(selectedDate, 'yyyy-MM-dd')
+    ),
+  });
 
   const handlePrevWeek = () => setCurrentWeekStart(subWeeks(currentWeekStart, 1));
   const handleNextWeek = () => setCurrentWeekStart(addWeeks(currentWeekStart, 1));
@@ -48,6 +38,7 @@ const DateTimeSelection = () => {
           ...bookingData,
           selectedDate: selectedDate.toISOString(),
           selectedTime,
+          serviceIds: bookingData.serviceIds,
         }
       });
     }
@@ -59,13 +50,13 @@ const DateTimeSelection = () => {
         {/* Header */}
         <div className="flex-shrink-0 px-5 pt-4 pb-3">
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => navigate(-1)}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-card hover:bg-muted transition-colors"
             >
               <ChevronLeft className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-xl font-bold text-foreground">Select Date & Time</h1>
+            <h1 className="text-xl font-bold text-foreground">選擇日期與時間</h1>
           </div>
         </div>
 
@@ -75,16 +66,16 @@ const DateTimeSelection = () => {
           <div className="px-5 py-4">
             {/* Month Header */}
             <div className="flex items-center justify-between mb-4">
-              <button 
+              <button
                 onClick={handlePrevWeek}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
               >
                 <ChevronLeft className="w-4 h-4 text-muted-foreground" />
               </button>
               <span className="text-lg font-semibold text-foreground">
-                {format(currentWeekStart, 'MMMM yyyy')}
+                {format(currentWeekStart, 'yyyy年 MMMM', { locale: zhTW })}
               </span>
-              <button 
+              <button
                 onClick={handleNextWeek}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
               >
@@ -98,22 +89,21 @@ const DateTimeSelection = () => {
                 const isSelected = isSameDay(day, selectedDate);
                 const isToday = isSameDay(day, new Date());
                 const isPast = day < new Date() && !isToday;
-                
+
                 return (
                   <button
                     key={day.toISOString()}
                     onClick={() => !isPast && setSelectedDate(day)}
                     disabled={isPast}
-                    className={`flex-1 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${
-                      isSelected
-                        ? 'bg-milk-tea text-white shadow-md'
-                        : isPast
-                          ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed'
-                          : 'bg-card hover:bg-muted text-foreground'
-                    }`}
+                    className={`flex-1 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${isSelected
+                      ? 'bg-milk-tea text-white shadow-md'
+                      : isPast
+                        ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed'
+                        : 'bg-card hover:bg-muted text-foreground'
+                      }`}
                   >
                     <span className="text-xs font-medium uppercase opacity-70">
-                      {format(day, 'EEE')}
+                      {format(day, 'EEE', { locale: zhTW })}
                     </span>
                     <span className={`text-lg font-bold ${isToday && !isSelected ? 'text-milk-tea' : ''}`}>
                       {format(day, 'd')}
@@ -127,31 +117,44 @@ const DateTimeSelection = () => {
           {/* Time Slots Section */}
           <div className="px-5 py-4">
             <h2 className="text-base font-semibold text-foreground mb-4">
-              ⏰ Available Slots for {format(selectedDate, 'MMM d')}
+              ⏰ {format(selectedDate, 'M月d日', { locale: zhTW })} 可預約時段
             </h2>
-            
-            <div className="grid grid-cols-3 gap-3">
-              {timeSlots.map((slot) => {
-                const isSelected = selectedTime === slot.time;
-                
-                return (
-                  <button
-                    key={slot.time}
-                    onClick={() => slot.available && setSelectedTime(slot.time)}
-                    disabled={!slot.available}
-                    className={`py-3 px-4 rounded-full font-medium text-sm transition-all border ${
-                      isSelected
+
+            {isLoading ? (
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="h-10 bg-muted rounded-full animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                {timeSlots?.map((slot) => {
+                  const isSelected = selectedTime === slot.time;
+
+                  return (
+                    <button
+                      key={slot.time}
+                      onClick={() => slot.available && setSelectedTime(slot.time)}
+                      disabled={!slot.available}
+                      className={`py-3 px-4 rounded-full font-medium text-sm transition-all border ${isSelected
                         ? 'bg-milk-tea text-white border-milk-tea shadow-md'
                         : slot.available
                           ? 'bg-card text-foreground border-milk-tea/50 hover:border-milk-tea hover:bg-milk-tea/10'
                           : 'bg-muted/50 text-muted-foreground/50 border-transparent cursor-not-allowed line-through'
-                    }`}
-                  >
-                    {slot.time}
-                  </button>
-                );
-              })}
-            </div>
+                        }`}
+                    >
+                      {slot.time}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {!isLoading && (!timeSlots || timeSlots.length === 0) && (
+              <p className="text-center text-muted-foreground py-8">
+                此日期無可預約時段
+              </p>
+            )}
           </div>
         </div>
 
@@ -162,7 +165,7 @@ const DateTimeSelection = () => {
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground font-medium">
-                  {bookingData.itemCount} service{bookingData.itemCount > 1 ? 's' : ''}
+                  {bookingData.itemCount} 項服務
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold text-foreground bg-milk-tea/10 backdrop-blur-sm px-2 py-0.5 rounded-lg">
@@ -170,22 +173,22 @@ const DateTimeSelection = () => {
                   </span>
                   {bookingData.totalTime > 0 && (
                     <span className="text-sm text-muted-foreground font-medium">
-                      • {bookingData.totalTime}m
+                      • {bookingData.totalTime} 分鐘
                     </span>
                   )}
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 onClick={handleNext}
                 disabled={!selectedTime}
                 className="py-3.5 px-6 bg-milk-tea/80 hover:bg-milk-tea backdrop-blur-xl border border-white/30 disabled:bg-muted disabled:text-muted-foreground disabled:border-transparent disabled:backdrop-blur-none rounded-full font-bold text-white transition-all active:scale-[0.98] shadow-lg whitespace-nowrap disabled:cursor-not-allowed"
               >
-                Next: Enter Details
+                下一步：填寫資料
               </button>
             </div>
           </div>
-          
+
           <BottomNav activeTab="booking" />
         </div>
       </div>

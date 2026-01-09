@@ -163,8 +163,8 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
       setSelectedTime(`${hour}:00`);
       setIsNewBooking(true);
       toast({
-        title: "New Booking",
-        description: `Creating booking at ${hour}:00`,
+        title: "新增預約",
+        description: `正在建立於 ${hour}:00 的預約`,
       });
     }, 500);
   }, []);
@@ -189,8 +189,8 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
 
   const handleSave = (booking: BookingDetails) => {
     toast({
-      title: isNewBooking ? "Booking Created" : "Booking Updated",
-      description: `${booking.clientName || "New booking"} saved successfully ✨`,
+      title: isNewBooking ? "預約已建立" : "預約已更新",
+      description: `${booking.clientName || "新預約"} 儲存成功 ✨`,
     });
     handleCloseModal();
   };
@@ -198,8 +198,8 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
   const handleDelete = (id: string) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
     toast({
-      title: "Booking Deleted",
-      description: "The booking has been removed.",
+      title: "預約已刪除",
+      description: "此預約已被移除。",
     });
     handleCloseModal();
   };

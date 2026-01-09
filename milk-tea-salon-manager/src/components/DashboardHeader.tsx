@@ -9,10 +9,10 @@ const DashboardHeader = ({ managerName, notificationCount = 0 }: DashboardHeader
   return (
     <header className="flex items-center justify-between px-5 py-4">
       <div className="animate-fade-in">
-        <p className="text-muted-foreground text-sm font-medium">Good morning ☀️</p>
-        <h1 className="text-2xl font-bold text-foreground">Hi, {managerName}!</h1>
+        <p className="text-muted-foreground text-sm font-medium">早安 ☀️</p>
+        <h1 className="text-2xl font-bold text-foreground">嗨，{managerName}！</h1>
       </div>
-      
+
       <button className="relative p-3 bg-card rounded-squircle shadow-card hover:shadow-soft transition-all duration-200 hover:scale-105 active:scale-95">
         <Bell className="w-5 h-5 text-foreground" />
         {notificationCount > 0 && (

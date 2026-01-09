@@ -18,23 +18,23 @@ interface AppointmentCardProps {
 
 const statusConfig = {
   upcoming: {
-    badge: "Upcoming",
+    badge: "未報到",
     badgeClass: "bg-pastel-blue text-pastel-blue-foreground",
-    actionLabel: "Check In",
+    actionLabel: "報到",
     actionIcon: CheckCircle,
     actionClass: "bg-primary text-primary-foreground hover:bg-accent",
   },
   "checked-in": {
-    badge: "Checked In",
+    badge: "已報到",
     badgeClass: "bg-pastel-green text-pastel-green-foreground",
-    actionLabel: "Mark Paid",
+    actionLabel: "結帳",
     actionIcon: CreditCard,
     actionClass: "bg-success text-success-foreground hover:bg-success/90",
   },
   completed: {
-    badge: "Completed",
+    badge: "已完成",
     badgeClass: "bg-muted text-muted-foreground",
-    actionLabel: "Done",
+    actionLabel: "已結束",
     actionIcon: CheckCircle,
     actionClass: "bg-muted text-muted-foreground cursor-default",
   },

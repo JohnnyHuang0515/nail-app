@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addDays, subDays, addWeeks, subWeeks, startOfWeek, endOfWeek } from "date-fns";
+import { zhTW } from "date-fns/locale";
 
 interface ScheduleHeaderProps {
   currentDate: Date;
@@ -26,11 +27,11 @@ const ScheduleHeader = ({ currentDate, viewMode, onDateChange }: ScheduleHeaderP
 
   const getDisplayDate = () => {
     if (viewMode === "day") {
-      return format(currentDate, "EEEE, MMM d");
+      return format(currentDate, "MM月dd日 EEEE", { locale: zhTW });
     } else {
       const start = startOfWeek(currentDate, { weekStartsOn: 1 });
       const end = endOfWeek(currentDate, { weekStartsOn: 1 });
-      return `${format(start, "MMM d")} - ${format(end, "MMM d")}`;
+      return `${format(start, "MM月dd日", { locale: zhTW })} - ${format(end, "MM月dd日", { locale: zhTW })}`;
     }
   };
 
@@ -42,9 +43,9 @@ const ScheduleHeader = ({ currentDate, viewMode, onDateChange }: ScheduleHeaderP
       >
         <ChevronLeft className="w-5 h-5 text-foreground" />
       </button>
-      
+
       <h2 className="text-base font-bold text-foreground">{getDisplayDate()}</h2>
-      
+
       <button
         onClick={handleNext}
         className="p-2 rounded-xl bg-secondary hover:bg-primary/20 transition-colors"

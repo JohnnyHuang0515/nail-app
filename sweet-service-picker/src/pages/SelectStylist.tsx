@@ -81,9 +81,9 @@ const SelectStylist = () => {
             <span className="text-sm">返回</span>
           </button>
           <h1 className="text-2xl font-bold text-foreground">
-            Choose your Artist
+            選擇美甲師
           </h1>
-          <p className="text-muted-foreground mt-1">選擇您喜愛的美甲師</p>
+          <p className="text-muted-foreground mt-1">Choose your favorite artist</p>
         </div>
 
         {/* Loading State */}

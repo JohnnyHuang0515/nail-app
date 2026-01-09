@@ -1,39 +1,44 @@
 import { useState } from "react";
 import MobileFrame from "@/components/MobileFrame";
-import BottomNavBar from "@/components/BottomNavBar";
-import ViewSwitcher from "@/components/ViewSwitcher";
 import ScheduleHeader from "@/components/ScheduleHeader";
 import TimelineView from "@/components/TimelineView";
-import StaffLegend from "@/components/StaffLegend";
+import ViewSwitcher from "@/components/ViewSwitcher";
+import { ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Schedule = () => {
-  const [viewMode, setViewMode] = useState<"day" | "week">("day");
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"day" | "week">("day");
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full bg-background relative">
-        {/* Header */}
-        <header className="px-5 pt-4 pb-2">
-          <h1 className="text-xl font-bold text-foreground mb-3">Schedule</h1>
-          <ViewSwitcher value={viewMode} onChange={setViewMode} />
-        </header>
+      <div className="flex flex-col h-full bg-background">
+        <div className="px-5 py-4">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => navigate("/menu")}
+              className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-xl font-bold text-foreground flex-1">行程表</h1>
+          </div>
 
-        {/* Date Navigation */}
-        <ScheduleHeader
-          currentDate={currentDate}
-          viewMode={viewMode}
-          onDateChange={setCurrentDate}
-        />
+          <div className="mb-2">
+            <ViewSwitcher value={viewMode} onChange={setViewMode} />
+          </div>
 
-        {/* Staff Legend */}
-        <StaffLegend />
+          <ScheduleHeader
+            currentDate={currentDate}
+            viewMode={viewMode}
+            onDateChange={setCurrentDate}
+          />
+        </div>
 
-        {/* Timeline */}
-        <TimelineView viewMode={viewMode} currentDate={currentDate} />
-
-        {/* Bottom Nav */}
-        <BottomNavBar />
+        <div className="flex-1 overflow-hidden relative">
+          <TimelineView currentDate={currentDate} viewMode={viewMode} />
+        </div>
       </div>
     </MobileFrame>
   );

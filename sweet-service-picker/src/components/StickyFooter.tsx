@@ -13,16 +13,17 @@ interface StickyFooterProps {
   totalPrice: number;
   totalTime: number;
   itemCount: number;
+  serviceIds: string[];
   stylist?: Stylist | null;
 }
 
-const StickyFooter = ({ totalPrice, totalTime, itemCount, stylist }: StickyFooterProps) => {
+const StickyFooter = ({ totalPrice, totalTime, itemCount, serviceIds, stylist }: StickyFooterProps) => {
   const navigate = useNavigate();
 
   const handleNext = () => {
     if (itemCount > 0) {
       navigate('/booking/datetime', {
-        state: { totalPrice, totalTime, itemCount, stylist }
+        state: { totalPrice, totalTime, itemCount, serviceIds, stylist }
       });
     }
   };
@@ -33,7 +34,7 @@ const StickyFooter = ({ totalPrice, totalTime, itemCount, stylist }: StickyFoote
         {/* Left side - Price & Time */}
         <div className="flex flex-col">
           <span className="text-xs text-muted-foreground font-medium">
-            {itemCount > 0 ? `${itemCount} service${itemCount > 1 ? 's' : ''}` : 'No services'}
+            {itemCount > 0 ? `${itemCount} 項服務` : '尚未選擇服務'}
           </span>
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-foreground bg-milk-tea/10 backdrop-blur-sm px-2 py-0.5 rounded-lg">
@@ -41,19 +42,19 @@ const StickyFooter = ({ totalPrice, totalTime, itemCount, stylist }: StickyFoote
             </span>
             {totalTime > 0 && (
               <span className="text-sm text-muted-foreground font-medium">
-                • {totalTime}m
+                • {totalTime} 分鐘
               </span>
             )}
           </div>
         </div>
-        
+
         {/* Right side - Action Button */}
-        <button 
+        <button
           onClick={handleNext}
           disabled={itemCount === 0}
           className="py-3.5 px-6 bg-milk-tea/80 hover:bg-milk-tea backdrop-blur-xl border border-white/30 disabled:bg-muted disabled:text-muted-foreground disabled:border-transparent disabled:backdrop-blur-none rounded-full font-bold text-white transition-all active:scale-[0.98] shadow-lg whitespace-nowrap disabled:cursor-not-allowed"
         >
-          {itemCount > 0 ? 'Next: Date & Time' : 'Select a Service'}
+          {itemCount > 0 ? '下一步：選擇時間' : '請選擇服務'}
         </button>
       </div>
     </div>

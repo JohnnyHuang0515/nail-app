@@ -32,12 +32,12 @@ const MenuItem = ({ icon: Icon, label, onClick }: MenuItemProps) => {
 };
 
 const menuItems = [
-  { icon: Users, label: "Staff Management", path: "/staff" },
-  { icon: Tag, label: "Services & Prices", path: "/services" },
-  { icon: Package, label: "Inventory", path: "/inventory" },
-  { icon: Ticket, label: "Coupons & Marketing", path: "/coupons" },
-  { icon: BarChart3, label: "Reports", path: "/reports" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: Users, label: "員工管理", path: "/staff" },
+  { icon: Tag, label: "服務價目表", path: "/services" },
+  { icon: Package, label: "庫存管理", path: "/inventory" },
+  { icon: Ticket, label: "優惠券與行銷", path: "/coupons" },
+  { icon: BarChart3, label: "報表分析", path: "/reports" },
+  { icon: Settings, label: "設定", path: "/settings" },
 ];
 
 const Menu = () => {
@@ -48,7 +48,7 @@ const Menu = () => {
       <div className="flex-1 overflow-y-auto">
         {/* Header */}
         <div className="px-5 pt-4 pb-6">
-          <h1 className="text-2xl font-bold text-foreground">Store Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">店務管理</h1>
         </div>
 
         {/* Grid Menu */}

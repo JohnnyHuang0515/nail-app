@@ -17,19 +17,19 @@ const Home = () => {
           <ShopInfoCard />
           <PortfolioGallery />
         </div>
-        
+
         {/* Fixed Bottom Area */}
         <div className="absolute bottom-0 left-0 right-0">
           {/* Booking Button */}
           <div className="px-5 py-3 bg-gradient-to-t from-background via-background to-transparent">
-            <button 
+            <button
               onClick={() => navigate('/select-stylist')}
               className="w-full py-4 bg-milk-tea/80 hover:bg-milk-tea backdrop-blur-xl border border-white/30 rounded-full font-bold text-lg text-white transition-all active:scale-[0.98] shadow-lg"
             >
-              ✨ Start Booking / 立即預約
+              ✨ 立即預約
             </button>
           </div>
-          
+
           {/* Bottom Navigation */}
           <BottomNav activeTab="home" />
         </div>

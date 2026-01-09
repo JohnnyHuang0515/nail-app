@@ -17,7 +17,7 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
             : "text-muted-foreground hover:text-foreground"
         )}
       >
-        Day View
+        日檢視
       </button>
       <button
         onClick={() => onChange("week")}
@@ -28,7 +28,7 @@ const ViewSwitcher = ({ value, onChange }: ViewSwitcherProps) => {
             : "text-muted-foreground hover:text-foreground"
         )}
       >
-        Week View
+        週檢視
       </button>
     </div>
   );

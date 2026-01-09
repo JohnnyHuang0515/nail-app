@@ -1,46 +1,61 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from '@tanstack/react-query';
+import { serviceService } from "@/services/service.service";
 
-const categories = [
-  { id: "handGel", name: "手部凝膠", icon: "💅" },
-  { id: "footGel", name: "足部凝膠", icon: "🦶" },
-  { id: "care", name: "保養護理", icon: "🤍" },
-  { id: "removal", name: "卸甲服務", icon: "✨" },
-];
+const CategoryTabs = () => {
+  const [activeCategory, setActiveCategory] = useState<string>("");
 
-interface CategoryTabsProps {
-  onCategoryChange?: (categoryId: string) => void;
-}
+  // Fetch categories from API
+  const { data: categories, isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => serviceService.getCategories(),
+  });
 
-const CategoryTabs = ({ onCategoryChange }: CategoryTabsProps) => {
-  const [activeCategory, setActiveCategory] = useState("handGel");
+  // Set first category as active when data loads
+  useState(() => {
+    if (categories && categories.length > 0 && !activeCategory) {
+      setActiveCategory(categories[0]);
+    }
+  });
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
-    onCategoryChange?.(categoryId);
     // Dispatch custom event for ServiceList to handle scroll
     window.dispatchEvent(new CustomEvent('scrollToCategory', { detail: categoryId }));
   };
 
+  if (isLoading) {
+    return (
+      <div className="px-5 py-3 bg-cream border-b border-border flex-shrink-0">
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-8 w-24 bg-muted rounded-full animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-5 py-3 bg-cream border-b border-border flex-shrink-0">
-      <div 
+      <div
         className="flex gap-2 overflow-x-auto scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {categories.map(category => (
+        {categories?.map(category => (
           <button
-            key={category.id}
-            onClick={() => handleCategoryClick(category.id)}
+            key={category}
+            onClick={() => handleCategoryClick(category)}
             className={`
               flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all
-              ${activeCategory === category.id 
-                ? 'bg-milk-tea text-white shadow-soft' 
+              ${activeCategory === category
+                ? 'bg-milk-tea text-white shadow-soft'
                 : 'bg-card border border-border text-muted-foreground hover:border-milk-tea/50'
               }
             `}
           >
-            <span>{category.icon}</span>
-            <span>{category.name}</span>
+            <span>💅</span>
+            <span>{category}</span>
           </button>
         ))}
       </div>

@@ -1,28 +1,9 @@
-import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useQuery } from '@tanstack/react-query';
 import CategorySection from "./CategorySection";
 import ServiceCard from "./ServiceCard";
 import BottomSheet from "./BottomSheet";
-
-const services = {
-  handGel: [
-    { id: 1, name: "Single Color Gel", price: 1200, time: 90 },
-    { id: 2, name: "French Gel Tips", price: 1500, time: 100 },
-    { id: 3, name: "Gradient Ombre Gel", price: 1400, time: 95 },
-  ],
-  footGel: [
-    { id: 4, name: "Foot Single Color", price: 1000, time: 75 },
-    { id: 5, name: "Foot French Gel", price: 1300, time: 85 },
-  ],
-  care: [
-    { id: 6, name: "Basic Manicure", price: 600, time: 45 },
-    { id: 7, name: "Spa Manicure", price: 900, time: 60 },
-    { id: 8, name: "Hand Paraffin Treatment", price: 500, time: 30 },
-  ],
-  removal: [
-    { id: 9, name: "Gel Removal", price: 300, time: 30 },
-    { id: 10, name: "Acrylic Removal", price: 500, time: 45 },
-  ],
-};
+import { serviceService, type Service } from "@/services/service.service";
 
 const addOns = [
   { id: 1, name: "Hard Gel Overlay", price: 300, time: 30 },
@@ -33,7 +14,7 @@ const addOns = [
 ];
 
 interface BookedService {
-  serviceId: number;
+  serviceId: string;
   name: string;
   basePrice: number;
   baseTime: number;
@@ -45,13 +26,25 @@ interface ServiceListProps {
 }
 
 const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
-  const [selectedService, setSelectedService] = useState<number | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [tempAddOns, setTempAddOns] = useState<number[]>([]);
   const [bookedServices, setBookedServices] = useState<BookedService[]>([]);
-  
+
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all services
+  const { data: allServices, isLoading, error } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => serviceService.getAll(),
+  });
+
+  // Fetch categories
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => serviceService.getCategories(),
+  });
 
   // Listen for category change from CategoryTabs
   useEffect(() => {
@@ -66,20 +59,27 @@ const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
     return () => window.removeEventListener('scrollToCategory', handleScrollToCategory as EventListener);
   }, []);
 
-  const allServices = [...services.handGel, ...services.footGel, ...services.care, ...services.removal];
-  const currentService = allServices.find(s => s.id === selectedService);
+  // Group services by category
+  const servicesByCategory = allServices?.reduce((acc, service) => {
+    if (!acc[service.category]) {
+      acc[service.category] = [];
+    }
+    acc[service.category].push(service);
+    return acc;
+  }, {} as Record<string, Service[]>) || {};
 
-  const handleServiceClick = (id: number) => {
+  const currentService = allServices?.find(s => s.id === selectedService);
+
+  const handleServiceClick = (id: string) => {
     setSelectedService(id);
-    // Check if already booked, restore add-ons
     const existing = bookedServices.find(b => b.serviceId === id);
     setTempAddOns(existing?.selectedAddOns || []);
     setIsSheetOpen(true);
   };
 
   const handleToggleAddOn = (id: number) => {
-    setTempAddOns(prev => 
-      prev.includes(id) 
+    setTempAddOns(prev =>
+      prev.includes(id)
         ? prev.filter(a => a !== id)
         : [...prev, id]
     );
@@ -87,18 +87,17 @@ const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
 
   const handleConfirmSelection = () => {
     if (!currentService) return;
-    
-    // Update or add to booked services
+
     setBookedServices(prev => {
       const existing = prev.findIndex(b => b.serviceId === currentService.id);
       const newBooking: BookedService = {
         serviceId: currentService.id,
         name: currentService.name,
-        basePrice: currentService.price,
-        baseTime: currentService.time,
+        basePrice: Number(currentService.price),
+        baseTime: currentService.durationMinutes,
         selectedAddOns: tempAddOns,
       };
-      
+
       if (existing >= 0) {
         const updated = [...prev];
         updated[existing] = newBooking;
@@ -106,7 +105,7 @@ const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
       }
       return [...prev, newBooking];
     });
-    
+
     setIsSheetOpen(false);
   };
 
@@ -115,7 +114,7 @@ const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
     setTempAddOns([]);
   };
 
-  // Calculate totals from booked services
+  // Calculate totals
   const totalPrice = bookedServices.reduce((sum, booking) => {
     const addOnsPrice = booking.selectedAddOns.reduce((addSum, addOnId) => {
       const addOn = addOns.find(a => a.id === addOnId);
@@ -132,85 +131,86 @@ const ServiceList = ({ onTotalsChange }: ServiceListProps) => {
     return sum + booking.baseTime + addOnsTime;
   }, 0);
 
-  // Notify parent of totals change
+  // Notify parent
   useEffect(() => {
     onTotalsChange?.({ totalPrice, totalTime, itemCount: bookedServices.length });
   }, [totalPrice, totalTime, bookedServices.length, onTotalsChange]);
 
-  const isServiceBooked = (id: number) => bookedServices.some(b => b.serviceId === id);
+  const isServiceBooked = (id: string) => bookedServices.some(b => b.serviceId === id);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="h-full overflow-y-auto px-5 py-4">
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="animate-pulse">
+              <div className="h-6 w-32 bg-muted rounded mb-3"></div>
+              <div className="space-y-2">
+                <div className="h-16 bg-muted rounded-2xl"></div>
+                <div className="h-16 bg-muted rounded-2xl"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center px-5">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">載入服務項目失敗</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-milk-tea text-white rounded-lg"
+          >
+            重新載入
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       {/* Scrollable Services */}
-      <div 
+      <div
         ref={scrollContainerRef}
         className="h-full overflow-y-auto px-5 py-4"
       >
-        <div ref={el => sectionRefs.current['handGel'] = el}>
-          <CategorySection title="手部凝膠 Hand Gel" icon="💅">
-            {services.handGel.map(service => (
-              <ServiceCard
-                key={service.id}
-                name={service.name}
-                price={service.price}
-                isSelected={isServiceBooked(service.id)}
-                onClick={() => handleServiceClick(service.id)}
-              />
-            ))}
-          </CategorySection>
-        </div>
-        
-        <div ref={el => sectionRefs.current['footGel'] = el}>
-          <CategorySection title="足部凝膠 Foot Gel" icon="🦶">
-            {services.footGel.map(service => (
-              <ServiceCard
-                key={service.id}
-                name={service.name}
-                price={service.price}
-                isSelected={isServiceBooked(service.id)}
-                onClick={() => handleServiceClick(service.id)}
-              />
-            ))}
-          </CategorySection>
-        </div>
-        
-        <div ref={el => sectionRefs.current['care'] = el}>
-          <CategorySection title="保養護理 Care" icon="🤍">
-            {services.care.map(service => (
-              <ServiceCard
-                key={service.id}
-                name={service.name}
-                price={service.price}
-                isSelected={isServiceBooked(service.id)}
-                onClick={() => handleServiceClick(service.id)}
-              />
-            ))}
-          </CategorySection>
-        </div>
-        
-        <div ref={el => sectionRefs.current['removal'] = el}>
-          <CategorySection title="卸甲服務 Removal" icon="✨">
-            {services.removal.map(service => (
-              <ServiceCard
-                key={service.id}
-                name={service.name}
-                price={service.price}
-                isSelected={isServiceBooked(service.id)}
-                onClick={() => handleServiceClick(service.id)}
-              />
-            ))}
-          </CategorySection>
-        </div>
+        {categories?.map(category => {
+          const servicesInCategory = servicesByCategory[category] || [];
+          if (servicesInCategory.length === 0) return null;
+
+          return (
+            <div key={category} ref={el => sectionRefs.current[category] = el}>
+              <CategorySection title={category} icon="💅">
+                {servicesInCategory.map(service => (
+                  <ServiceCard
+                    key={service.id}
+                    name={service.name}
+                    price={Number(service.price)}
+                    isSelected={isServiceBooked(service.id)}
+                    onClick={() => handleServiceClick(service.id)}
+                  />
+                ))}
+              </CategorySection>
+            </div>
+          );
+        })}
       </div>
-      
+
       {/* Bottom Sheet Modal */}
       {currentService && (
-        <BottomSheet 
-          isOpen={isSheetOpen} 
+        <BottomSheet
+          isOpen={isSheetOpen}
           onClose={handleCloseSheet}
           serviceName={currentService.name}
-          basePrice={currentService.price}
-          baseTime={currentService.time}
+          basePrice={Number(currentService.price)}
+          baseTime={currentService.durationMinutes}
           addOns={addOns}
           selectedAddOns={tempAddOns}
           onToggleAddOn={handleToggleAddOn}

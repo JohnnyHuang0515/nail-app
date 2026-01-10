@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, Pencil, UserPlus, Users, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import MobileFrame from "@/components/MobileFrame";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -23,22 +24,10 @@ import {
 } from "@/components/ui/select";
 import StaffRoster from "@/components/StaffRoster";
 import { cn } from "@/lib/utils";
+import { adminStaffService, StaffMember } from "@/services/adminStaff.service";
+import { toast } from "sonner";
 
-interface StaffMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-  isOnShift: boolean;
-}
-
-const initialStaff: StaffMember[] = [
-  { id: "1", name: "Mika", role: "資深美甲師", isOnShift: true },
-  { id: "2", name: "Yuki", role: "美甲師", isOnShift: true },
-  { id: "3", name: "Luna", role: "實習美甲師", isOnShift: false },
-  { id: "4", name: "Hana", role: "櫃檯", isOnShift: true },
-  { id: "5", name: "Sakura", role: "美甲師", isOnShift: false },
-];
+// Use StaffMember type from service
 
 const roles = ["資深美甲師", "美甲師", "實習美甲師", "櫃檯", "店長"];
 
@@ -108,16 +97,64 @@ const StaffCard = ({
 
 const Staff = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"team" | "roster">("team");
-  const [staffList, setStaffList] = useState(initialStaff);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [form, setForm] = useState({ name: "", role: "" });
 
+  // Fetch staff from API
+  const { data: staffList = [], isLoading } = useQuery({
+    queryKey: ['admin-staff'],
+    queryFn: adminStaffService.getAll,
+  });
+
+  // Toggle shift mutation
+  const toggleMutation = useMutation({
+    mutationFn: adminStaffService.toggleShift,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-staff'] });
+    },
+  });
+
+  // Create staff mutation
+  const createMutation = useMutation({
+    mutationFn: adminStaffService.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-staff'] });
+      toast.success("員工已新增");
+      setIsDrawerOpen(false);
+    },
+    onError: () => {
+      toast.error("新增失敗");
+    },
+  });
+
+  // Update staff mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminStaffService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-staff'] });
+      toast.success("員工已更新");
+      setIsDrawerOpen(false);
+    },
+    onError: () => {
+      toast.error("更新失敗");
+    },
+  });
+
+  // Delete staff mutation
+  const deleteMutation = useMutation({
+    mutationFn: adminStaffService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-staff'] });
+      toast.success("員工已刪除");
+      setIsDrawerOpen(false);
+    },
+  });
+
   const handleToggleShift = (id: string) => {
-    setStaffList((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isOnShift: !s.isOnShift } : s))
-    );
+    toggleMutation.mutate(id);
   };
 
   const handleAddNew = () => {
@@ -136,31 +173,21 @@ const Staff = () => {
     if (!form.name.trim() || !form.role) return;
 
     if (editingStaff) {
-      // Update existing staff
-      setStaffList((prev) =>
-        prev.map((s) =>
-          s.id === editingStaff.id
-            ? { ...s, name: form.name.trim(), role: form.role }
-            : s
-        )
-      );
+      updateMutation.mutate({
+        id: editingStaff.id,
+        data: { name: form.name.trim(), role: form.role },
+      });
     } else {
-      // Add new staff
-      const newStaff: StaffMember = {
-        id: Date.now().toString(),
+      createMutation.mutate({
         name: form.name.trim(),
         role: form.role,
-        isOnShift: false,
-      };
-      setStaffList((prev) => [...prev, newStaff]);
+      });
     }
-    setIsDrawerOpen(false);
   };
 
   const handleDelete = () => {
     if (!editingStaff) return;
-    setStaffList((prev) => prev.filter((s) => s.id !== editingStaff.id));
-    setIsDrawerOpen(false);
+    deleteMutation.mutate(editingStaff.id);
   };
 
   return (

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, Phone, ChevronRight } from "lucide-react";
 import MobileFrame from "@/components/MobileFrame";
 import BottomNavBar from "@/components/BottomNavBar";
@@ -14,66 +15,10 @@ import {
   DrawerFooter,
   DrawerClose,
 } from "@/components/ui/drawer";
+import { clientService, Client } from "@/services/clients.service";
+import { toast } from "sonner";
 
-interface Client {
-  id: string;
-  name: string;
-  phone: string;
-  avatar?: string;
-  lastVisit: string;
-  isNew: boolean;
-  totalSpend: number;
-  visitCount: number;
-}
-
-const initialClients: Client[] = [
-  {
-    id: "1",
-    name: "Emily Chen",
-    phone: "0912-345-678",
-    lastVisit: "2 days ago",
-    isNew: false,
-    totalSpend: 4500,
-    visitCount: 8,
-  },
-  {
-    id: "2",
-    name: "Sarah Lin",
-    phone: "0923-456-789",
-    lastVisit: "1 week ago",
-    isNew: false,
-    totalSpend: 2800,
-    visitCount: 4,
-  },
-  {
-    id: "3",
-    name: "Jessica Wang",
-    phone: "0934-567-890",
-    lastVisit: "",
-    isNew: true,
-    totalSpend: 0,
-    visitCount: 0,
-  },
-  {
-    id: "4",
-    name: "Michelle Liu",
-    phone: "0945-678-901",
-    lastVisit: "3 days ago",
-    isNew: false,
-    totalSpend: 6200,
-    visitCount: 12,
-  },
-  {
-    id: "5",
-    name: "Amy Chang",
-    phone: "0956-789-012",
-    lastVisit: "5 days ago",
-    isNew: false,
-    totalSpend: 1600,
-    visitCount: 2,
-  },
-];
-
+// Use Client type from service
 const getInitials = (name: string) => {
   return name
     .split(" ")
@@ -142,16 +87,29 @@ const ClientCard = ({
 
 const Clients = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [clients, setClients] = useState(initialClients);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "" });
 
-  const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.phone.includes(searchQuery)
-  );
+  // Fetch clients from API
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ['clients', searchQuery],
+    queryFn: () => clientService.getAll(searchQuery || undefined),
+  });
+
+  // Create client mutation
+  const createMutation = useMutation({
+    mutationFn: clientService.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast.success("客戶已新增");
+      setIsDrawerOpen(false);
+    },
+    onError: () => {
+      toast.error("新增失敗，請稍後再試");
+    },
+  });
 
   const handleClientClick = (clientId: string) => {
     navigate(`/clients/${clientId}`);
@@ -164,18 +122,10 @@ const Clients = () => {
 
   const handleSave = () => {
     if (!form.name.trim() || !form.phone.trim()) return;
-
-    const newClient: Client = {
-      id: Date.now().toString(),
+    createMutation.mutate({
       name: form.name.trim(),
       phone: form.phone.trim(),
-      lastVisit: "",
-      isNew: true,
-      totalSpend: 0,
-      visitCount: 0,
-    };
-    setClients((prev) => [...prev, newClient]);
-    setIsDrawerOpen(false);
+    });
   };
 
   return (
@@ -205,8 +155,12 @@ const Clients = () => {
 
         {/* Client List */}
         <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-2">
-          {filteredClients.length > 0 ? (
-            filteredClients.map((client, index) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center h-40">
+              <span className="text-muted-foreground">載入中...</span>
+            </div>
+          ) : clients.length > 0 ? (
+            clients.map((client, index) => (
               <ClientCard
                 key={client.id}
                 client={client}

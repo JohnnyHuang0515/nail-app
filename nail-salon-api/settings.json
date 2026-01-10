@@ -1,0 +1,52 @@
+{
+  "storeName": "Nail Salon",
+  "bookingUrl": "liff.line.me/1234567890-abcdefgh",
+  "businessHours": [
+    {
+      "day": "週一",
+      "isOpen": true,
+      "open": "10:00",
+      "close": "20:00"
+    },
+    {
+      "day": "週二",
+      "isOpen": true,
+      "open": "10:00",
+      "close": "20:00"
+    },
+    {
+      "day": "週三",
+      "isOpen": true,
+      "open": "10:00",
+      "close": "20:00"
+    },
+    {
+      "day": "週四",
+      "isOpen": true,
+      "open": "10:00",
+      "close": "20:00"
+    },
+    {
+      "day": "週五",
+      "isOpen": true,
+      "open": "10:00",
+      "close": "21:00"
+    },
+    {
+      "day": "週六",
+      "isOpen": true,
+      "open": "09:00",
+      "close": "21:00"
+    },
+    {
+      "day": "週日",
+      "isOpen": true,
+      "open": "10:00",
+      "close": "18:00"
+    }
+  ],
+  "notifications": {
+    "lineReminder": true,
+    "reminderHoursBefore": 24
+  }
+}

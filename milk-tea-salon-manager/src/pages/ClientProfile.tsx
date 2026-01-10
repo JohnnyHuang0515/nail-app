@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronLeft,
   Phone,
@@ -18,95 +19,24 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { clientService, ClientDetails } from "@/services/clients.service";
 
-interface VisitHistory {
-  id: string;
-  date: string;
-  service: string;
-  staff: string;
-  price: number;
-}
-
-interface UpcomingBooking {
-  id: string;
-  date: string;
-  time: string;
-  service: string;
-  staff: string;
-  reminderSent: boolean;
-}
-
-interface ClientData {
-  id: string;
-  name: string;
-  phone: string;
-  memberTier: "Bronze" | "Silver" | "Gold" | "Platinum";
-  points: number;
-  pointsToNext: number;
-  nextTier: string;
-  totalSpend: number;
-  visitCount: number;
-  history: VisitHistory[];
-  upcoming: UpcomingBooking[];
-}
-
-// Mock data - in real app, fetch based on client ID
-const mockClients: Record<string, ClientData> = {
-  "1": {
-    id: "1",
-    name: "Emily Chen",
-    phone: "0912-345-678",
-    memberTier: "Gold",
-    points: 1250,
-    pointsToNext: 750,
-    nextTier: "Platinum",
-    totalSpend: 4500,
-    visitCount: 8,
-    history: [
-      { id: "h1", date: "Dec 28, 2024", service: "Gel Manicure", staff: "Mika", price: 800 },
-      { id: "h2", date: "Dec 15, 2024", service: "Pedicure + Art", staff: "Yuki", price: 1200 },
-      { id: "h3", date: "Nov 30, 2024", service: "Gel Removal", staff: "Luna", price: 300 },
-      { id: "h4", date: "Nov 15, 2024", service: "Full Set Acrylic", staff: "Mika", price: 1500 },
-      { id: "h5", date: "Oct 28, 2024", service: "Nail Art Design", staff: "Hana", price: 700 },
-    ],
-    upcoming: [
-      { id: "u1", date: "Jan 5, 2025", time: "14:00", service: "Gel Manicure", staff: "Mika", reminderSent: true },
-      { id: "u2", date: "Jan 15, 2025", time: "16:30", service: "Pedicure", staff: "Yuki", reminderSent: false },
-    ],
-  },
-  "2": {
-    id: "2",
-    name: "Sarah Lin",
-    phone: "0923-456-789",
-    memberTier: "Silver",
-    points: 680,
-    pointsToNext: 320,
-    nextTier: "Gold",
-    totalSpend: 2800,
-    visitCount: 4,
-    history: [
-      { id: "h1", date: "Dec 23, 2024", service: "Classic Manicure", staff: "Luna", price: 500 },
-      { id: "h2", date: "Dec 10, 2024", service: "Nail Art", staff: "Hana", price: 1000 },
-    ],
-    upcoming: [
-      { id: "u1", date: "Jan 8, 2025", time: "11:00", service: "Gel Pedicure", staff: "Sakura", reminderSent: false },
-    ],
-  },
-};
+// Use ClientDetails type from service
 
 const tierColors = {
   Bronze: "from-amber-600 to-amber-400",
   Silver: "from-slate-400 to-slate-300",
   Gold: "from-yellow-500 to-amber-300",
   Platinum: "from-slate-600 to-slate-400",
-};
+} as const;
 
 const tierBgColors = {
   Bronze: "bg-amber-100",
   Silver: "bg-slate-100",
   Gold: "bg-yellow-50",
   Platinum: "bg-slate-200",
-};
+  undefined: "bg-muted",
+} as const;
 
 const getInitials = (name: string) => {
   return name
@@ -121,8 +51,33 @@ const ClientProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("history");
 
-  // Get client data (mock)
-  const client = mockClients[id || "1"] || mockClients["1"];
+  // Fetch client data from API
+  const { data: client, isLoading, error } = useQuery({
+    queryKey: ['client', id],
+    queryFn: () => clientService.getById(id || ''),
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <MobileFrame>
+        <div className="flex items-center justify-center h-full">
+          <span className="text-muted-foreground">載入中...</span>
+        </div>
+      </MobileFrame>
+    );
+  }
+
+  if (error || !client) {
+    return (
+      <MobileFrame>
+        <div className="flex flex-col items-center justify-center h-full gap-4">
+          <span className="text-muted-foreground">找不到客戶資料</span>
+          <Button variant="outline" onClick={() => navigate("/clients")}>返回</Button>
+        </div>
+      </MobileFrame>
+    );
+  }
 
   const handleCall = () => {
     toast.success(`Calling ${client.phone}...`);

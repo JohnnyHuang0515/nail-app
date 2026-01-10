@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, Clock, Pencil, Plus, Settings, X, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import MobileFrame from "@/components/MobileFrame";
 import { cn } from "@/lib/utils";
 import {
@@ -27,32 +28,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { servicesService, Service } from "@/services/services.service";
+import { toast } from "sonner";
 
-interface Service {
-  id: string;
-  name: string;
-  duration: number;
-  price: number;
-  category: string;
-}
-
-const initialCategories = ["手部", "足部", "保養", "加購"];
-
-const initialServices: Service[] = [
-  { id: "1", name: "經典手部單色", duration: 45, price: 500, category: "手部" },
-  { id: "2", name: "凝膠手部單色", duration: 60, price: 800, category: "手部" },
-  { id: "3", name: "造型設計 (單指)", duration: 15, price: 150, category: "手部" },
-  { id: "4", name: "水晶指甲延甲", duration: 120, price: 1500, category: "手部" },
-  { id: "5", name: "經典足部單色", duration: 60, price: 700, category: "足部" },
-  { id: "6", name: "凝膠足部單色", duration: 75, price: 900, category: "足部" },
-  { id: "7", name: "深層足部保養", duration: 90, price: 1200, category: "足部" },
-  { id: "8", name: "卸甲", duration: 20, price: 300, category: "保養" },
-  { id: "9", name: "指甲修補", duration: 15, price: 200, category: "保養" },
-  { id: "10", name: "甘皮處理", duration: 20, price: 250, category: "保養" },
-  { id: "11", name: "手部按摩", duration: 15, price: 200, category: "加購" },
-  { id: "12", name: "蜜蠟保養", duration: 20, price: 350, category: "加購" },
-  { id: "13", name: "鏡面粉/極光粉", duration: 30, price: 400, category: "加購" },
-];
+// Use Service type from service
 
 const ServiceItem = ({
   service,
@@ -88,9 +67,8 @@ const ServiceItem = ({
 
 const Services = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState(initialCategories);
-  const [activeCategory, setActiveCategory] = useState(initialCategories[0]);
-  const [services, setServices] = useState(initialServices);
+  const queryClient = useQueryClient();
+  const [activeCategory, setActiveCategory] = useState<string>("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [form, setForm] = useState({ name: "", duration: "", price: "", category: "" });
@@ -100,6 +78,62 @@ const Services = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
+
+  // Fetch services from API
+  const { data: services = [], isLoading } = useQuery({
+    queryKey: ['admin-services'],
+    queryFn: () => servicesService.getAll(true),
+  });
+
+  // Fetch categories from API
+  const { data: categories = [] } = useQuery({
+    queryKey: ['admin-services-categories'],
+    queryFn: servicesService.getCategories,
+  });
+
+  // Set first category as active when categories load
+  useEffect(() => {
+    if (categories.length > 0 && !activeCategory) {
+      setActiveCategory(categories[0]);
+    }
+  }, [categories, activeCategory]);
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: servicesService.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-services-categories'] });
+      toast.success("服務已新增");
+      setIsDrawerOpen(false);
+    },
+    onError: () => {
+      toast.error("新增失敗");
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => servicesService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+      toast.success("服務已更新");
+      setIsDrawerOpen(false);
+    },
+    onError: () => {
+      toast.error("更新失敗");
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: servicesService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-services'] });
+      toast.success("服務已刪除");
+      setIsDrawerOpen(false);
+    },
+  });
 
   const filteredServices = services.filter((s) => s.category === activeCategory);
 
@@ -123,45 +157,36 @@ const Services = () => {
   const handleSave = () => {
     if (!form.name.trim() || !form.duration || !form.price || !form.category) return;
 
+    const serviceData = {
+      name: form.name.trim(),
+      durationMinutes: parseInt(form.duration) || 30,
+      price: parseInt(form.price) || 0,
+      category: form.category,
+    };
+
     if (editingService) {
-      setServices((prev) =>
-        prev.map((s) =>
-          s.id === editingService.id
-            ? {
-              ...s,
-              name: form.name.trim(),
-              duration: parseInt(form.duration) || s.duration,
-              price: parseInt(form.price) || s.price,
-              category: form.category,
-            }
-            : s
-        )
-      );
+      updateMutation.mutate({ id: editingService.id, data: serviceData });
     } else {
-      const newService: Service = {
-        id: Date.now().toString(),
-        name: form.name.trim(),
-        duration: parseInt(form.duration) || 30,
-        price: parseInt(form.price) || 0,
-        category: form.category,
-      };
-      setServices((prev) => [...prev, newService]);
+      createMutation.mutate(serviceData);
     }
-    setIsDrawerOpen(false);
   };
 
   const handleDelete = () => {
     if (!editingService) return;
-    setServices((prev) => prev.filter((s) => s.id !== editingService.id));
-    setIsDrawerOpen(false);
+    deleteMutation.mutate(editingService.id);
   };
 
-  // Category handlers
+  // Category handlers - simplified since categories are derived from services in DB
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
-    if (categories.includes(newCategoryName.trim())) return;
-    setCategories((prev) => [...prev, newCategoryName.trim()]);
+    if (categories.includes(newCategoryName.trim())) {
+      toast.error("分類已存在");
+      return;
+    }
+    // For new category, we'll just switch to it - it will appear when a service is added
+    setActiveCategory(newCategoryName.trim());
     setNewCategoryName("");
+    toast.info("請新增服務到此分類");
   };
 
   const handleStartEditCategory = (cat: string) => {
@@ -175,31 +200,19 @@ const Services = () => {
       setEditingCategory(null);
       return;
     }
-    // Update category name in services
-    setServices((prev) =>
-      prev.map((s) =>
-        s.category === editingCategory
-          ? { ...s, category: editCategoryName.trim() }
-          : s
-      )
-    );
-    // Update categories list
-    setCategories((prev) =>
-      prev.map((c) => (c === editingCategory ? editCategoryName.trim() : c))
-    );
-    // Update active category if needed
-    if (activeCategory === editingCategory) {
-      setActiveCategory(editCategoryName.trim());
-    }
+    // In a real implementation, we'd update all services with this category
+    toast.info("分類更名功能需要後端支援");
     setEditingCategory(null);
   };
 
   const handleDeleteCategory = (cat: string) => {
     // Don't delete if it has services
     const hasServices = services.some((s) => s.category === cat);
-    if (hasServices) return;
-
-    setCategories((prev) => prev.filter((c) => c !== cat));
+    if (hasServices) {
+      toast.error("無法刪除有服務的分類");
+      return;
+    }
+    // Categories are derived from services, so we just switch away
     if (activeCategory === cat && categories.length > 1) {
       setActiveCategory(categories.find((c) => c !== cat) || categories[0]);
     }

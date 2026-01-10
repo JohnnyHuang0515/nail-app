@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, Plus, Ticket, Send, Pause, Play, Pencil, Trash2, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import MobileFrame from "@/components/MobileFrame";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -17,22 +18,9 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import { toast } from "@/hooks/use-toast";
+import { couponService, Coupon } from "@/services/coupon.service";
 
-interface Coupon {
-  id: string;
-  title: string;
-  discount: string;
-  expiry: string;
-  isActive: boolean;
-  usedCount: number;
-}
-
-const initialCoupons: Coupon[] = [
-  { id: "1", title: "新會員優惠", discount: "9折", expiry: "2024/12/31", isActive: true, usedCount: 45 },
-  { id: "2", title: "節日特惠", discount: "折抵 $100", expiry: "2025/01/15", isActive: true, usedCount: 23 },
-  { id: "3", title: "好友推薦", discount: "85折", expiry: "2025/02/28", isActive: false, usedCount: 12 },
-  { id: "4", title: "生日禮", discount: "8折", expiry: "長期有效", isActive: true, usedCount: 89 },
-];
+// Use Coupon type from coupon.service.ts
 
 const CouponCard = ({
   coupon,
@@ -114,16 +102,37 @@ const CouponCard = ({
 
 const Coupons = () => {
   const navigate = useNavigate();
-  const [coupons, setCoupons] = useState(initialCoupons);
+  const queryClient = useQueryClient();
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [form, setForm] = useState({ title: "", discount: "", expiry: "" });
 
+  // Fetch coupons from API
+  const { data: coupons = [], isLoading } = useQuery({
+    queryKey: ['coupons'],
+    queryFn: couponService.getAll,
+  });
+
+  // Toggle mutation
+  const toggleMutation = useMutation({
+    mutationFn: couponService.toggle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: couponService.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      toast({ title: "優惠券已刪除", description: "優惠券已成功移除。" });
+    },
+  });
+
   const handleToggle = (id: string) => {
-    setCoupons((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c))
-    );
+    toggleMutation.mutate(id);
   };
 
   const handleAddNew = () => {
@@ -138,33 +147,46 @@ const Coupons = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title.trim() || !form.discount.trim() || !form.expiry.trim()) return;
 
-    if (editingCoupon) {
-      setCoupons((prev) =>
-        prev.map((c) =>
-          c.id === editingCoupon.id
-            ? { ...c, title: form.title.trim(), discount: form.discount.trim(), expiry: form.expiry.trim() }
-            : c
-        )
-      );
-    } else {
-      const newCoupon: Coupon = {
-        id: Date.now().toString(),
-        title: form.title.trim(),
-        discount: form.discount.trim(),
-        expiry: form.expiry.trim(),
+    try {
+      // Parse discount string to determine type and value
+      const isPercentage = form.discount.includes('折');
+      const discountValue = parseFloat(form.discount.replace(/[^\d.]/g, ''));
+
+      // Parse expiry to ISO date
+      const parts = form.expiry.split('/');
+      const expiryDate = parts.length === 3
+        ? new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])).toISOString()
+        : new Date().toISOString();
+
+      const couponData = {
+        code: form.title,
+        discountType: (isPercentage ? 'percentage' : 'fixed_amount') as 'percentage' | 'fixed_amount',
+        discountValue: isPercentage ? (100 - discountValue) : discountValue,
+        validFrom: new Date().toISOString(),
+        validUntil: expiryDate,
         isActive: true,
-        usedCount: 0,
       };
-      setCoupons((prev) => [...prev, newCoupon]);
+
+      if (editingCoupon) {
+        await couponService.update(editingCoupon.id, couponData);
+        toast({ title: "優惠券已更新", description: "變更已儲存成功。" });
+      } else {
+        await couponService.create(couponData);
+        toast({ title: "優惠券已建立", description: "新活動已建立成功。" });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      setIsDrawerOpen(false);
+    } catch (error) {
+      toast({ title: "錯誤", description: "操作失敗，請稍後再試。", variant: "destructive" });
     }
-    setIsDrawerOpen(false);
   };
 
   const handleDelete = (id: string) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
+    deleteMutation.mutate(id);
   };
 
   const handleSendBroadcast = () => {

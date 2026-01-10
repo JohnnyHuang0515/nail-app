@@ -1,4 +1,4 @@
-import { Users, Tag, Package, Ticket, BarChart3, Settings } from "lucide-react";
+import { Users, Tag, Package, Ticket, BarChart3, Settings, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MobileFrame from "@/components/MobileFrame";
 import BottomNavBar from "@/components/BottomNavBar";
@@ -32,6 +32,7 @@ const MenuItem = ({ icon: Icon, label, onClick }: MenuItemProps) => {
 };
 
 const menuItems = [
+  { icon: CalendarDays, label: "預約管理", path: "/bookings" },
   { icon: Users, label: "員工管理", path: "/staff" },
   { icon: Tag, label: "服務價目表", path: "/services" },
   { icon: Package, label: "庫存管理", path: "/inventory" },

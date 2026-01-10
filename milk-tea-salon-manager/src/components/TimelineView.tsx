@@ -1,97 +1,15 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { format, isSameDay, addDays, startOfWeek } from "date-fns";
+import { format, isSameDay, addDays, startOfWeek, endOfWeek } from "date-fns";
 import EditBookingModal, { BookingDetails } from "./EditBookingModal";
 import { toast } from "@/hooks/use-toast";
+import { scheduleService } from "@/services/schedule.service";
 
 interface TimelineViewProps {
   viewMode: "day" | "week";
   currentDate: Date;
 }
-
-// Sample bookings data
-const sampleBookings: BookingDetails[] = [
-  {
-    id: "1",
-    clientName: "Sarah Johnson",
-    service: "Hair Color & Cut",
-    startTime: "10:00",
-    endTime: "11:30",
-    staffName: "Yuki",
-    staffColor: "pink",
-    date: new Date(),
-  },
-  {
-    id: "2",
-    clientName: "Emma Wilson",
-    service: "Manicure",
-    startTime: "10:30",
-    endTime: "11:30",
-    staffName: "Mei",
-    staffColor: "blue",
-    date: new Date(),
-  },
-  {
-    id: "3",
-    clientName: "Lisa Chen",
-    service: "Gel Nails",
-    startTime: "10:00",
-    endTime: "11:00",
-    staffName: "Saki",
-    staffColor: "lavender",
-    date: new Date(),
-  },
-  {
-    id: "4",
-    clientName: "Olivia Brown",
-    service: "Facial",
-    startTime: "14:00",
-    endTime: "15:30",
-    staffName: "Yuki",
-    staffColor: "pink",
-    date: new Date(),
-  },
-  {
-    id: "5",
-    clientName: "Ava Martinez",
-    service: "Lash Extensions",
-    startTime: "14:00",
-    endTime: "15:00",
-    staffName: "Saki",
-    staffColor: "lavender",
-    date: new Date(),
-  },
-  {
-    id: "6",
-    clientName: "Mia Davis",
-    service: "Hair Styling",
-    startTime: "16:00",
-    endTime: "17:00",
-    staffName: "Kana",
-    staffColor: "peach",
-    date: new Date(),
-  },
-  {
-    id: "7",
-    clientName: "Sophie Lee",
-    service: "Pedicure",
-    startTime: "16:00",
-    endTime: "17:30",
-    staffName: "Mei",
-    staffColor: "blue",
-    date: new Date(),
-  },
-  {
-    id: "8",
-    clientName: "Amy Wang",
-    service: "Nail Art",
-    startTime: "16:30",
-    endTime: "17:30",
-    staffName: "Yuki",
-    staffColor: "pink",
-    date: new Date(),
-  },
-];
 
 const hours = Array.from({ length: 11 }, (_, i) => i + 10); // 10:00 - 20:00
 const ROW_HEIGHT = 60; // Row height for timeline
@@ -104,7 +22,28 @@ const staffColorStyles = {
 };
 
 const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
-  const [bookings, setBookings] = useState<BookingDetails[]>(sampleBookings);
+  // Calculate date range for API query
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+
+  // Fetch bookings from API
+  const { data: apiBookings = [], isLoading, refetch } = useQuery({
+    queryKey: ['schedule', weekStart.toISOString(), weekEnd.toISOString()],
+    queryFn: () => scheduleService.getBookings(weekStart, weekEnd),
+  });
+
+  // Transform API data to BookingDetails format
+  const bookings: BookingDetails[] = apiBookings.map((b: any) => ({
+    id: b.id,
+    clientName: b.clientName,
+    service: b.service,
+    startTime: b.startTime,
+    endTime: b.endTime,
+    staffName: b.staffName,
+    staffColor: b.staffColor as "pink" | "blue" | "lavender" | "peach",
+    date: new Date(b.date),
+  }));
+
   const [selectedBooking, setSelectedBooking] = useState<BookingDetails | null>(null);
   const [isNewBooking, setIsNewBooking] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
@@ -196,16 +135,16 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
   };
 
   const handleDelete = (id: string) => {
-    setBookings((prev) => prev.filter((b) => b.id !== id));
+    // In real implementation, call API to delete booking
     toast({
       title: "預約已刪除",
       description: "此預約已被移除。",
     });
     handleCloseModal();
+    refetch(); // Refresh data from API
   };
 
-  // Get week days for week view
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  // Get week days for week view (using weekStart from earlier)
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   if (viewMode === "week") {

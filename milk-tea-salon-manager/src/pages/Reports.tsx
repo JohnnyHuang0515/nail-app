@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, TrendingUp, Users, DollarSign, Receipt, Crown, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import MobileFrame from "@/components/MobileFrame";
 import {
   Select,
@@ -21,56 +22,9 @@ import {
   Cell,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { reportService, ReportPeriod } from "@/services/reports.service";
 
-// Mock data for different periods
-const revenueDataThisWeek = [
-  { day: "週一", revenue: 2400 },
-  { day: "週二", revenue: 1800 },
-  { day: "週三", revenue: 3200 },
-  { day: "週四", revenue: 2800 },
-  { day: "週五", revenue: 4200 },
-  { day: "週六", revenue: 5100 },
-  { day: "週日", revenue: 3800 },
-];
-
-const revenueDataThisMonth = [
-  { day: "第一週", revenue: 15000 },
-  { day: "第二週", revenue: 18500 },
-  { day: "第三週", revenue: 22000 },
-  { day: "第四週", revenue: 19800 },
-];
-
-const revenueDataLastMonth = [
-  { day: "第一週", revenue: 12000 },
-  { day: "第二週", revenue: 16000 },
-  { day: "第三週", revenue: 14500 },
-  { day: "第四週", revenue: 17200 },
-];
-
-const serviceBreakdown = [
-  { name: "手部", value: 45, color: "hsl(34, 36%, 68%)" },
-  { name: "足部", value: 30, color: "hsl(340, 75%, 85%)" },
-  { name: "保養", value: 25, color: "hsl(210, 70%, 85%)" },
-];
-
-const staffRanking = [
-  { id: "1", name: "Mika", revenue: 52000, avatar: "MI", color: "bg-primary/30 text-primary" },
-  { id: "2", name: "Yuki", revenue: 45000, avatar: "YU", color: "bg-accent/30 text-accent" },
-  { id: "3", name: "Luna", revenue: 38000, avatar: "LU", color: "bg-pink-200 text-pink-600" },
-  { id: "4", name: "Hana", revenue: 32000, avatar: "HA", color: "bg-purple-200 text-purple-600" },
-  { id: "5", name: "Sakura", revenue: 28000, avatar: "SA", color: "bg-blue-200 text-blue-600" },
-];
-
-const metricsData: Record<string, {
-  totalSales: number;
-  newCustomers: number;
-  avgTicket: number;
-}> = {
-  "this-week": { totalSales: 23300, newCustomers: 12, avgTicket: 850 },
-  "this-month": { totalSales: 75300, newCustomers: 48, avgTicket: 920 },
-  "last-month": { totalSales: 59700, newCustomers: 35, avgTicket: 780 },
-};
-
+// Revenue data will be fetched from API
 const MetricCard = ({
   icon: Icon,
   label,
@@ -95,20 +49,30 @@ const MetricCard = ({
 
 const Reports = () => {
   const navigate = useNavigate();
-  const [period, setPeriod] = useState("this-week");
+  const [period, setPeriod] = useState<ReportPeriod>("this-week");
 
+  // Fetch report data from API
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ['reports', period],
+    queryFn: () => reportService.getReport(period),
+  });
+
+  // Generate bar chart data from API dailyBreakdown
   const getRevenueData = () => {
-    switch (period) {
-      case "this-month":
-        return revenueDataThisMonth;
-      case "last-month":
-        return revenueDataLastMonth;
-      default:
-        return revenueDataThisWeek;
+    if (!reportData || !reportData.dailyBreakdown || reportData.dailyBreakdown.length === 0) {
+      return [{ day: "載入中", revenue: 0 }];
     }
+    return reportData.dailyBreakdown;
   };
 
-  const metrics = metricsData[period];
+  const metrics = {
+    totalSales: reportData?.totalSales || 0,
+    newCustomers: reportData?.newCustomers || 0,
+    avgTicket: reportData?.avgTicket || 0,
+  };
+
+  const serviceBreakdown = reportData?.serviceBreakdown || [];
+  const staffRanking = reportData?.staffRanking || [];
 
   return (
     <MobileFrame>
@@ -122,7 +86,7 @@ const Reports = () => {
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-xl font-bold text-foreground flex-1">報表分析</h1>
-          <Select value={period} onValueChange={setPeriod}>
+          <Select value={period} onValueChange={(v) => setPeriod(v as ReportPeriod)}>
             <SelectTrigger className="w-32 h-9 rounded-xl text-sm">
               <SelectValue />
             </SelectTrigger>

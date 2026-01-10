@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronLeft, Package, Minus, Plus, Pencil, ClipboardList, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, Package, Minus, Plus, Pencil, ClipboardList, ChevronRight, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MobileFrame from "@/components/MobileFrame";
 import { cn } from "@/lib/utils";
@@ -24,16 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { inventoryService, Product } from "@/services/inventory.service";
 
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  category: "consumables" | "retail";
-  stock: number;
-  unit: string;
-}
-
+// Keep UsageLog interface for now
 interface UsageLog {
   id: string;
   productId: string;
@@ -44,18 +37,6 @@ interface UsageLog {
 
 const units = ["瓶", "條", "包", "件", "盒", "ml", "g"];
 
-const initialProducts: Product[] = [
-  { id: "1", name: "透明建構膠", brand: "OPI", category: "consumables", stock: 8, unit: "瓶" },
-  { id: "2", name: "玫瑰粉指甲油", brand: "Essie", category: "consumables", stock: 2, unit: "瓶" },
-  { id: "3", name: "卸甲液", brand: "CND", category: "consumables", stock: 5, unit: "瓶" },
-  { id: "4", name: "基底膠", brand: "OPI", category: "consumables", stock: 1, unit: "瓶" },
-  { id: "5", name: "霧面封層膠", brand: "Essie", category: "consumables", stock: 4, unit: "瓶" },
-  { id: "6", name: "指緣油", brand: "CND", category: "retail", stock: 12, unit: "瓶" },
-  { id: "7", name: "薰衣草護手霜", brand: "L'Occitane", category: "retail", stock: 6, unit: "條" },
-  { id: "8", name: "硬甲油", brand: "OPI", category: "retail", stock: 2, unit: "瓶" },
-  { id: "9", name: "足部修護霜", brand: "Burt's Bees", category: "retail", stock: 0, unit: "條" },
-];
-
 const ProductItem = ({
   product,
   onTap,
@@ -63,9 +44,9 @@ const ProductItem = ({
   product: Product;
   onTap: (product: Product) => void;
 }) => {
-  const isLowStock = product.stock < 3;
+  const isLowStock = product.stock <= (product.minStockLevel || 3);
   const isOutOfStock = product.stock === 0;
-  const isGoodStock = product.stock > 5;
+  const isGoodStock = product.stock > (product.minStockLevel || 3) + 2;
 
   return (
     <button
@@ -96,7 +77,7 @@ const ProductItem = ({
         {/* Stock */}
         <div className="text-right shrink-0">
           <p className="font-bold text-sm text-foreground">{product.stock}</p>
-          <p className="text-[10px] text-muted-foreground">{product.unit}</p>
+          <p className="text-[10px] text-muted-foreground">{product.unit || '個'}</p>
         </div>
 
         {/* Badge */}
@@ -121,131 +102,171 @@ const ProductItem = ({
 const Inventory = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"consumables" | "retail">("consumables");
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isActionDrawerOpen, setIsActionDrawerOpen] = useState(false);
-  const [isLogDrawerOpen, setIsLogDrawerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [loggingProduct, setLoggingProduct] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", brand: "", stock: "", unit: "", category: "" });
-  const [logForm, setLogForm] = useState({ amount: "", customerName: "" });
+  const [products, setProducts] = useState<Product[]>([]);
   const [usageLogs, setUsageLogs] = useState<UsageLog[]>([]);
 
-  const filteredProducts = products.filter((p) => p.category === activeTab);
-  const lowStockCount = products.filter((p) => p.stock < 3).length;
+  // Drawer States
+  const [isDetailOpen, setIsDetailOpen] = useState(false); // For Add/Edit Form
+  const [isActionDrawerOpen, setIsActionDrawerOpen] = useState(false); // For View/Actions
+  const [isLogDrawerOpen, setIsLogDrawerOpen] = useState(false); // For Logging Usage
 
+  // Selection States
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // For View
+
+  // Form States
+  const [newProduct, setNewProduct] = useState<Partial<Product>>({
+    name: "",
+    brand: "",
+    category: "consumables",
+    stock: 0,
+    unit: "瓶"
+  });
+  const [logForm, setLogForm] = useState({ amount: "", customerName: "" });
+
+  const fetchProducts = async () => {
+    try {
+      const data = await inventoryService.getAll();
+      setProducts(data);
+    } catch (error) {
+      console.error(error);
+      toast.error("無法載入庫存資料");
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Handlers
   const handleProductTap = (product: Product) => {
     setSelectedProduct(product);
     setIsActionDrawerOpen(true);
   };
 
-  const handleQuickAdjust = (id: string, delta: number) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, stock: Math.max(0, p.stock + delta) } : p
-      )
-    );
-    const product = products.find((p) => p.id === id);
-    if (product) {
-      const newStock = Math.max(0, product.stock + delta);
-      toast.success(`${product.name}: ${newStock} ${product.unit}`);
+  const openNewProduct = () => {
+    setNewProduct({ name: "", brand: "", category: activeTab, stock: 0, unit: "瓶" });
+    setIsDetailOpen(true);
+  };
+
+  const openEditProduct = () => {
+    if (!selectedProduct) return;
+    setNewProduct({
+      name: selectedProduct.name,
+      brand: selectedProduct.brand,
+      category: selectedProduct.category as any,
+      stock: selectedProduct.stock,
+      unit: selectedProduct.unit
+    });
+    setIsActionDrawerOpen(false);
+    setIsDetailOpen(true);
+  };
+
+  const handleSaveProduct = async () => {
+    try {
+      if (selectedProduct && isDetailOpen && newProduct.name === selectedProduct.name) {
+        // Naive check for edit mode vs create mode if I reused modal. 
+        // Actually better to have an 'isEditing' flag or check selectedProduct ID if we passed it.
+        // But here 'newProduct' is just state. 
+        // Let's use 'selectedProduct' existence to determine update IF we are coming from edit flow.
+        // But wait, openNewProduct doesn't clear selectedProduct? I should clear it.
+      }
+
+      // Let's rely on a specific logic: if selectedProduct is set AND we clicked "Edit", strict way:
+      // But simplifying:
+
+      const isUpdate = selectedProduct && newProduct.name === selectedProduct.name; // Weak check
+      // Let's fix openNewProduct to clear selectedProduct
+    } catch (e) { }
+  };
+
+  // Revised Save Handler
+  const confirmSaveProduct = async () => {
+    try {
+      if (selectedProduct) {
+        // Update
+        await inventoryService.update(selectedProduct.id, newProduct);
+        toast.success("商品更新成功");
+      } else {
+        // Create
+        if (!newProduct.name) return toast.error("請輸入名稱");
+        await inventoryService.create(newProduct as Omit<Product, 'id'>);
+        toast.success("商品新增成功");
+      }
+      setIsDetailOpen(false);
+      setSelectedProduct(null); // Clear selection
+      fetchProducts();
+    } catch (error) {
+      toast.error("儲存失敗");
     }
   };
 
-  const handleAddNew = () => {
-    setEditingProduct(null);
-    setForm({ name: "", brand: "", stock: "", unit: "bottles", category: activeTab });
-    setIsDrawerOpen(true);
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+    if (!confirm("確定要刪除此商品嗎？")) return;
+    try {
+      await inventoryService.delete(selectedProduct.id);
+      toast.success("商品已刪除");
+      setIsDetailOpen(false);
+      setIsActionDrawerOpen(false);
+      setSelectedProduct(null);
+      fetchProducts();
+    } catch (error) {
+      toast.error("刪除失敗");
+    }
   };
 
-  const handleEdit = () => {
-    if (!selectedProduct) return;
-    setEditingProduct(selectedProduct);
-    setForm({
-      name: selectedProduct.name,
-      brand: selectedProduct.brand,
-      stock: selectedProduct.stock.toString(),
-      unit: selectedProduct.unit,
-      category: selectedProduct.category,
-    });
-    setIsActionDrawerOpen(false);
-    setIsDrawerOpen(true);
+  const handleQuickAdjust = async (id: string, delta: number) => {
+    // Optimistic update
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    const newStock = Math.max(0, product.stock + delta);
+
+    // Update UI immediately
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, stock: newStock } : p));
+    if (selectedProduct?.id === id) {
+      setSelectedProduct({ ...selectedProduct, stock: newStock });
+    }
+
+    // API Call (Debounce or just fire)
+    try {
+      await inventoryService.update(id, { stock: newStock });
+    } catch (error) {
+      toast.error("更新庫存失敗");
+      fetchProducts(); // Revert
+    }
   };
 
-  const handleLogUsage = () => {
+  const handleLogUsageSetup = () => {
     if (!selectedProduct) return;
-    setLoggingProduct(selectedProduct);
     setLogForm({ amount: "", customerName: "" });
     setIsActionDrawerOpen(false);
     setIsLogDrawerOpen(true);
   };
 
-  const handleSaveLog = () => {
-    if (!loggingProduct || !logForm.amount) return;
+  const handleSaveLog = async () => {
+    // For now, just logging locally or reducing stock via API
+    if (!selectedProduct) return;
 
+    // Reduce stock as 'usage'
+    await handleQuickAdjust(selectedProduct.id, -1);
+
+    // Create local log (backend doesn't support log history yet)
     const newLog: UsageLog = {
       id: Date.now().toString(),
-      productId: loggingProduct.id,
+      productId: selectedProduct.id,
       amount: logForm.amount,
       customerName: logForm.customerName || "現場客",
       date: new Date().toLocaleDateString(),
     };
+    setUsageLogs(prev => [newLog, ...prev]);
 
-    setUsageLogs((prev) => [newLog, ...prev]);
-
-    // Optionally reduce stock
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === loggingProduct.id
-          ? { ...p, stock: Math.max(0, p.stock - 1) }
-          : p
-      )
-    );
-
-    toast.success(`已記錄使用量: ${logForm.amount} - ${logForm.customerName || "現場客"}`);
+    toast.success("已記錄使用量");
     setIsLogDrawerOpen(false);
   };
 
-  const handleSave = () => {
-    if (!form.name.trim() || !form.unit || !form.category) return;
-
-    if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? {
-              ...p,
-              name: form.name.trim(),
-              brand: form.brand.trim(),
-              stock: parseInt(form.stock) || 0,
-              unit: form.unit,
-              category: form.category as "consumables" | "retail",
-            }
-            : p
-        )
-      );
-    } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: form.name.trim(),
-        brand: form.brand.trim(),
-        stock: parseInt(form.stock) || 0,
-        unit: form.unit,
-        category: form.category as "consumables" | "retail",
-      };
-      setProducts((prev) => [...prev, newProduct]);
-    }
-    setIsDrawerOpen(false);
-  };
-
-  const handleDelete = () => {
-    if (!editingProduct) return;
-    setProducts((prev) => prev.filter((p) => p.id !== editingProduct.id));
-    setIsDrawerOpen(false);
-  };
-
-  const recentLogs = usageLogs.filter((log) => log.productId === loggingProduct?.id).slice(0, 3);
+  const filteredProducts = products.filter((p) => (p.category || "consumables") === activeTab);
+  const lowStockCount = products.filter((p) => p.stock <= (p.minStockLevel || 3)).length;
 
   return (
     <MobileFrame>
@@ -265,7 +286,10 @@ const Inventory = () => {
             </Badge>
           )}
           <button
-            onClick={handleAddNew}
+            onClick={() => {
+              setSelectedProduct(null); // Clear for create mode
+              openNewProduct();
+            }}
             className="p-2 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
           >
             <Plus className="w-5 h-5" />
@@ -290,11 +314,11 @@ const Inventory = () => {
         <div className="px-5 py-2 flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span>充足 ({">"} 5)</span>
+            <span>充足</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>短缺 ({"<"} 3)</span>
+            <span>短缺</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-destructive" />
@@ -333,11 +357,9 @@ const Inventory = () => {
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
-            {/* Product Info with Stock Adjust */}
             <div className="p-4 bg-muted/50 rounded-xl">
               <p className="text-sm text-muted-foreground mb-3">{selectedProduct?.brand}</p>
 
-              {/* Stock Adjustment */}
               <div className="flex items-center justify-center gap-4">
                 <button
                   onClick={() => selectedProduct && handleQuickAdjust(selectedProduct.id, -1)}
@@ -352,7 +374,7 @@ const Inventory = () => {
                 </button>
                 <div className="text-center min-w-[80px]">
                   <p className="font-bold text-3xl text-foreground">{selectedProduct?.stock}</p>
-                  <p className="text-xs text-muted-foreground">{selectedProduct?.unit}</p>
+                  <p className="text-xs text-muted-foreground">{selectedProduct?.unit || '個'}</p>
                 </div>
                 <button
                   onClick={() => selectedProduct && handleQuickAdjust(selectedProduct.id, 1)}
@@ -363,10 +385,9 @@ const Inventory = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-2">
               <Button
-                onClick={handleLogUsage}
+                onClick={handleLogUsageSetup}
                 variant="outline"
                 className="w-full h-14 rounded-xl justify-start gap-3 text-left"
               >
@@ -377,7 +398,7 @@ const Inventory = () => {
                 </div>
               </Button>
               <Button
-                onClick={handleEdit}
+                onClick={openEditProduct}
                 variant="outline"
                 className="w-full h-14 rounded-xl justify-start gap-3 text-left"
               >
@@ -403,173 +424,117 @@ const Inventory = () => {
       <Drawer open={isLogDrawerOpen} onOpenChange={setIsLogDrawerOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5" />
-              登記使用量 - {loggingProduct?.name}
-            </DrawerTitle>
+            <DrawerTitle>登記使用量</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
-            {/* Product Info */}
-            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
-              <Package className="w-5 h-5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="font-medium text-sm">{loggingProduct?.name}</p>
-                <p className="text-xs text-muted-foreground">{loggingProduct?.brand}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-sm">{loggingProduct?.stock}</p>
-                <p className="text-xs text-muted-foreground">剩餘 {loggingProduct?.unit}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="amount">使用數量</Label>
-              <Input
-                id="amount"
-                placeholder="例如: 5ml, 2g, 1層"
-                value={logForm.amount}
-                onChange={(e) => setLogForm({ ...logForm, amount: e.target.value })}
-                className="h-12 rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="customer">客戶姓名 (選填)</Label>
-              <Input
-                id="customer"
-                placeholder="例如: 王小美"
-                value={logForm.customerName}
-                onChange={(e) => setLogForm({ ...logForm, customerName: e.target.value })}
-                className="h-12 rounded-xl"
-              />
-            </div>
-
-            {/* Recent Logs */}
-            {recentLogs.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">最近使用紀錄</p>
-                {recentLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between text-xs p-2 bg-muted/30 rounded-lg">
-                    <span>{log.amount} - {log.customerName}</span>
-                    <span className="text-muted-foreground">{log.date}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <Label>使用數量</Label>
+            <Input
+              value={logForm.amount}
+              onChange={(e) => setLogForm({ ...logForm, amount: e.target.value })}
+              placeholder="例如: 5ml"
+            />
+            <Label>客戶 (選填)</Label>
+            <Input
+              value={logForm.customerName}
+              onChange={(e) => setLogForm({ ...logForm, customerName: e.target.value })}
+              placeholder="王大明"
+            />
+            <Button onClick={handleSaveLog} className="w-full mt-4">確認登記</Button>
           </div>
-          <DrawerFooter>
-            <Button
-              onClick={handleSaveLog}
-              disabled={!logForm.amount.trim()}
-              className="h-12 rounded-xl"
-            >
-              確認登記
-            </Button>
-            <DrawerClose asChild>
-              <Button variant="outline" className="h-12 rounded-xl">
-                取消
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
         </DrawerContent>
       </Drawer>
 
-      {/* Add/Edit Drawer */}
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+      {/* Add/Edit Product Drawer */}
+      <Drawer open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>
-              {editingProduct ? "編輯商品" : "新增商品"}
-            </DrawerTitle>
+            <DrawerTitle>{selectedProduct ? "編輯商品" : "新增商品"}</DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-4 space-y-4">
+          <div className="px-4 pb-4 space-y-4 max-h-[70vh] overflow-y-auto">
             <div className="space-y-2">
-              <Label htmlFor="name">商品名稱</Label>
+              <Label>名稱</Label>
               <Input
-                id="name"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                 placeholder="輸入商品名稱"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="h-12 rounded-xl"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="brand">品牌</Label>
-              <Input
-                id="brand"
-                placeholder="輸入品牌名稱"
-                value={form.brand}
-                onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                className="h-12 rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">分類</Label>
-              <Select
-                value={form.category}
-                onValueChange={(value) => setForm({ ...form, category: value })}
-              >
-                <SelectTrigger className="h-12 rounded-xl">
-                  <SelectValue placeholder="選擇分類" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="consumables">消耗品</SelectItem>
-                  <SelectItem value="retail">零售商品</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="stock">庫存數量</Label>
+                <Label>品牌</Label>
                 <Input
-                  id="stock"
-                  type="number"
-                  placeholder="0"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                  className="h-12 rounded-xl"
+                  value={newProduct.brand}
+                  onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+                  placeholder="輸入品牌"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unit">單位</Label>
+                <Label>分類</Label>
                 <Select
-                  value={form.unit}
-                  onValueChange={(value) => setForm({ ...form, unit: value })}
+                  value={newProduct.category}
+                  onValueChange={(val) => setNewProduct({ ...newProduct, category: val as any })}
                 >
-                  <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue placeholder="選擇單位" />
+                  <SelectTrigger>
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {units.map((unit) => (
-                      <SelectItem key={unit} value={unit}>
-                        {unit}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="consumables">消耗品</SelectItem>
+                    <SelectItem value="retail">零售商品</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2 col-span-2">
+                <Label>庫存數量</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setNewProduct(p => ({ ...p, stock: Math.max(0, (p.stock || 0) - 1) }))}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    className="text-center"
+                    value={newProduct.stock}
+                    onChange={(e) => setNewProduct({ ...newProduct, stock: parseInt(e.target.value) || 0 })}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setNewProduct(p => ({ ...p, stock: (p.stock || 0) + 1 }))}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>單位</Label>
+                <Select
+                  value={newProduct.unit}
+                  onValueChange={(val) => setNewProduct({ ...newProduct, unit: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
-          <DrawerFooter>
-            <Button
-              onClick={handleSave}
-              disabled={!form.name.trim() || !form.unit || !form.category}
-              className="h-12 rounded-xl"
-            >
-              {editingProduct ? "儲存變更" : "新增商品"}
-            </Button>
-            {editingProduct && (
-              <Button
-                onClick={handleDelete}
-                variant="destructive"
-                className="h-12 rounded-xl"
-              >
-                刪除商品
+          <DrawerFooter className="flex-row gap-2">
+            <Button className="flex-1" onClick={confirmSaveProduct}>儲存</Button>
+            {selectedProduct && (
+              <Button variant="destructive" size="icon" onClick={handleDeleteProduct}>
+                <Trash2 className="w-4 h-4" />
               </Button>
             )}
             <DrawerClose asChild>
-              <Button variant="outline" className="h-12 rounded-xl">
-                取消
-              </Button>
+              <Button variant="outline" className="flex-1">取消</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>

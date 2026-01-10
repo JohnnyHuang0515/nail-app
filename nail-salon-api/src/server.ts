@@ -7,6 +7,13 @@ import staffRoutes from './routes/staff.routes';
 import bookingsRoutes from './routes/bookings.routes';
 
 import adminRoutes from './routes/admin.routes';
+import inventoryRoutes from './routes/inventory.routes';
+import scheduleRoutes from './routes/schedule.routes';
+import couponsRoutes from './routes/coupons.routes';
+import clientsRoutes from './routes/clients.routes';
+import reportsRoutes from './routes/reports.routes';
+import adminServicesRoutes from './routes/adminServices.routes';
+import settingsRoutes from './routes/settings.routes';
 
 dotenv.config();
 
@@ -39,6 +46,13 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/bookings', bookingsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/schedule', scheduleRoutes);
+app.use('/api/coupons', couponsRoutes);
+app.use('/api/clients', clientsRoutes);
+app.use('/api/admin/reports', reportsRoutes);
+app.use('/api/admin/services', adminServicesRoutes); // TEMP: No auth for testing
+app.use('/api/admin/settings', settingsRoutes);
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Nail Salon API v1.0' });

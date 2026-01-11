@@ -5,6 +5,8 @@ export interface StaffMember {
     isOnShift: boolean;
     phone?: string;
     email?: string;
+    avatarUrl?: string; // New field
+    portfolio?: string[]; // New field
 }
 
 export interface StaffCreateInput {
@@ -12,6 +14,8 @@ export interface StaffCreateInput {
     role: string;
     phone?: string;
     email?: string;
+    avatarUrl?: string; // New field
+    portfolio?: string[]; // New field
 }
 
 const API_URL = '/api/admin/staff';

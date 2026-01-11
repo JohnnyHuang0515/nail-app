@@ -14,6 +14,8 @@ import clientsRoutes from './routes/clients.routes';
 import reportsRoutes from './routes/reports.routes';
 import adminServicesRoutes from './routes/adminServices.routes';
 import settingsRoutes from './routes/settings.routes';
+import { uploadRoutes } from './routes/upload.routes';
+import { ensureBucketExists } from './config/minio.config';
 
 dotenv.config();
 
@@ -27,6 +29,7 @@ app.use(cors({
         'http://localhost:5174',      // Alternative port
         'http://localhost:8080',      // Vite dev server (actual)
         'http://localhost:8081',      // Admin Panel
+        'http://localhost:8082',      // Client App (Sweet Service Picker)
         'https://liff.line.me',       // LINE LIFF domain
         ...(process.env.CORS_ORIGIN?.split(',').filter(Boolean) || []),
     ],
@@ -53,6 +56,7 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/services', adminServicesRoutes); // TEMP: No auth for testing
 app.use('/api/admin/settings', settingsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Nail Salon API v1.0' });
@@ -64,7 +68,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    // Ensure MinIO bucket exists
+    await ensureBucketExists();
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
 

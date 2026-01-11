@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import StaffRoster from "@/components/StaffRoster";
+import ImageUpload from "@/components/ImageUpload";
 import { cn } from "@/lib/utils";
 import { adminStaffService, StaffMember } from "@/services/adminStaff.service";
 import { toast } from "sonner";
@@ -55,42 +56,66 @@ const StaffCard = ({
   onEdit: (staff: StaffMember) => void;
 }) => {
   return (
-    <div className="flex items-center gap-4 p-4 bg-card rounded-2xl shadow-soft">
-      {/* Avatar */}
-      <div
-        className={`w-14 h-14 rounded-full ${avatarColors[colorIndex % avatarColors.length]} flex items-center justify-center font-bold text-lg shrink-0`}
-      >
-        {getInitials(staff.name)}
-      </div>
+    <div className="flex flex-col gap-4 p-4 bg-card rounded-2xl shadow-soft">
+      <div className="flex items-center gap-4">
+        {/* Avatar */}
+        <div
+          className={`w-14 h-14 rounded-full ${avatarColors[colorIndex % avatarColors.length]} flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden border border-border/50`}
+        >
+          {staff.avatarUrl ? (
+            <img src={staff.avatarUrl} alt={staff.name} className="w-full h-full object-cover" />
+          ) : (
+            getInitials(staff.name)
+          )}
+        </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-foreground truncate">{staff.name}</p>
-        <p className="text-sm text-muted-foreground truncate">{staff.role}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span
-            className={`text-xs font-medium ${staff.isOnShift ? "text-green-600" : "text-muted-foreground"}`}
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-foreground truncate">{staff.name}</p>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium">
+              {staff.role || "美甲師"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span
+              className={`text-xs font-medium ${staff.isOnShift ? "text-green-600" : "text-muted-foreground"}`}
+            >
+              {staff.isOnShift ? "值班中" : "休假中"}
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Switch
+            checked={staff.isOnShift}
+            onCheckedChange={() => onToggleShift(staff.id)}
+            className="data-[state=checked]:bg-green-500"
+          />
+          <button
+            onClick={() => onEdit(staff)}
+            className="p-2 rounded-full hover:bg-muted transition-colors"
+            aria-label="Edit staff"
           >
-            {staff.isOnShift ? "值班中" : "休假中"}
-          </span>
+            <Pencil className="w-4 h-4 text-muted-foreground" />
+          </button>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-3 shrink-0">
-        <Switch
-          checked={staff.isOnShift}
-          onCheckedChange={() => onToggleShift(staff.id)}
-          className="data-[state=checked]:bg-green-500"
-        />
-        <button
-          onClick={() => onEdit(staff)}
-          className="p-2 rounded-full hover:bg-muted transition-colors"
-          aria-label="Edit staff"
-        >
-          <Pencil className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </div>
+      {/* Admin Portfolio Preview */}
+      {staff.portfolio && staff.portfolio.length > 0 && (
+        <div className="pl-[4.5rem]">
+          <p className="text-xs text-muted-foreground mb-1.5">作品集預覽 ({staff.portfolio.length})</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {staff.portfolio.slice(0, 4).map((img, i) => (
+              <div key={i} className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0 border border-border/50">
+                <img src={img} alt="Portfolio" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -101,7 +126,14 @@ const Staff = () => {
   const [activeTab, setActiveTab] = useState<"team" | "roster">("team");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
-  const [form, setForm] = useState({ name: "", role: "" });
+
+  // Updated state to include avatarUrl and portfolio
+  const [form, setForm] = useState({
+    name: "",
+    role: "",
+    avatarUrl: "",
+    portfolio: [] as string[]
+  });
 
   // Fetch staff from API
   const { data: staffList = [], isLoading } = useQuery({
@@ -159,29 +191,38 @@ const Staff = () => {
 
   const handleAddNew = () => {
     setEditingStaff(null);
-    setForm({ name: "", role: "" });
+    setForm({ name: "", role: "", avatarUrl: "", portfolio: [] });
     setIsDrawerOpen(true);
   };
 
   const handleEdit = (staff: StaffMember) => {
     setEditingStaff(staff);
-    setForm({ name: staff.name, role: staff.role });
+    setForm({
+      name: staff.name,
+      role: staff.role,
+      avatarUrl: staff.avatarUrl || "",
+      portfolio: staff.portfolio || []
+    });
     setIsDrawerOpen(true);
   };
 
   const handleSave = () => {
     if (!form.name.trim() || !form.role) return;
 
+    const staffData = {
+      name: form.name.trim(),
+      role: form.role,
+      avatarUrl: form.avatarUrl,
+      portfolio: form.portfolio
+    };
+
     if (editingStaff) {
       updateMutation.mutate({
         id: editingStaff.id,
-        data: { name: form.name.trim(), role: form.role },
+        data: staffData,
       });
     } else {
-      createMutation.mutate({
-        name: form.name.trim(),
-        role: form.role,
-      });
+      createMutation.mutate(staffData);
     }
   };
 
@@ -272,7 +313,7 @@ const Staff = () => {
               {editingStaff ? "編輯員工" : "新增員工"}
             </DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-4 space-y-4">
+          <div className="px-4 pb-4 space-y-4 max-h-[70vh] overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="name">姓名</Label>
               <Input
@@ -284,7 +325,7 @@ const Staff = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">職位</Label>
+              <Label htmlFor="role">職位 ({form.role || "未設定"})</Label>
               <Select
                 value={form.role}
                 onValueChange={(value) => setForm({ ...form, role: value })}
@@ -293,13 +334,33 @@ const Staff = () => {
                   <SelectValue placeholder="選擇職位" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map((role) => (
+                  {/* Ensure unique roles by adding current role if custom */}
+                  {Array.from(new Set([...roles, form.role].filter(Boolean))).map((role) => (
                     <SelectItem key={role} value={role}>
                       {role}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>大頭貼照</Label>
+              <ImageUpload
+                type="avatar"
+                currentImage={form.avatarUrl}
+                onUpload={(url) => setForm({ ...form, avatarUrl: url as string })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>作品集</Label>
+              <ImageUpload
+                type="portfolio"
+                multiple
+                currentImage={form.portfolio}
+                onUpload={(urls) => setForm({ ...form, portfolio: urls as string[] })}
+              />
             </div>
           </div>
           <DrawerFooter>

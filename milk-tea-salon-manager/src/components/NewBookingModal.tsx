@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
+import { zhTW } from "date-fns/locale";
 import { Search, Plus, Check, ChevronLeft, ChevronRight, Phone, Clock, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -57,13 +58,13 @@ const recentClients: Client[] = [
 ];
 
 const services: Service[] = [
-  { id: "1", name: "Classic Manicure", duration: 45, price: 500, category: "Hand" },
-  { id: "2", name: "Gel Manicure", duration: 60, price: 800, category: "Hand" },
-  { id: "3", name: "Nail Art (per nail)", duration: 15, price: 150, category: "Hand" },
-  { id: "4", name: "Full Set Acrylic", duration: 120, price: 1500, category: "Hand" },
-  { id: "5", name: "Classic Pedicure", duration: 45, price: 600, category: "Foot" },
-  { id: "6", name: "Gel Pedicure", duration: 60, price: 900, category: "Foot" },
-  { id: "7", name: "Paraffin Treatment", duration: 30, price: 400, category: "Care" },
+  { id: "1", name: "基礎手部保養", duration: 45, price: 500, category: "Hand" },
+  { id: "2", name: "凝膠美甲單色", duration: 60, price: 800, category: "Hand" },
+  { id: "3", name: "造型設計 (指)", duration: 15, price: 150, category: "Hand" },
+  { id: "4", name: "水晶延甲 (全手)", duration: 120, price: 1500, category: "Hand" },
+  { id: "5", name: "基礎足部保養", duration: 45, price: 600, category: "Foot" },
+  { id: "6", name: "足部凝膠單色", duration: 60, price: 900, category: "Foot" },
+  { id: "7", name: "深層足部護理", duration: 30, price: 400, category: "Care" },
 ];
 
 const staffMembers: Staff[] = [
@@ -128,8 +129,8 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
   const handleConfirmBooking = () => {
     if (selectedClient && selectedService && selectedStaff && selectedTime) {
       toast({
-        title: "Booking Confirmed! 🎉",
-        description: `${selectedClient.name} - ${selectedService.name} with ${selectedStaff.name} at ${selectedTime}`,
+        title: "預約建立成功！ 🎉",
+        description: `${selectedClient.name} - ${selectedService.name} 指定 ${selectedStaff.name} 於 ${selectedTime}`,
       });
       handleClose();
     }
@@ -168,9 +169,9 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 </button>
               )}
               <DialogTitle className="flex-1">
-                {step === 1 && "Select Client"}
-                {step === 2 && "Select Service"}
-                {step === 3 && "Select Staff & Time"}
+                {step === 1 && "選擇客戶"}
+                {step === 2 && "選擇服務"}
+                {step === 3 && "選擇設計師與時間"}
               </DialogTitle>
               <div className="flex gap-1.5">
                 {[1, 2, 3].map((s) => (
@@ -194,7 +195,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search client..."
+                    placeholder="搜尋客戶..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 h-11 rounded-xl bg-muted/50 border-0"
@@ -209,13 +210,13 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                   <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
                     <Plus className="w-5 h-5" />
                   </div>
-                  <span className="font-semibold">Add New Client</span>
+                  <span className="font-semibold">新增客戶</span>
                 </button>
 
                 {/* Recent Clients */}
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Recent Clients
+                    最近客戶
                   </p>
                   <div className="space-y-2">
                     {filteredClients.map((client, index) => (
@@ -292,7 +293,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                         <p className="font-semibold text-foreground">{service.name}</p>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {service.duration} mins
+                          {service.duration} 分鐘
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -320,7 +321,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 {/* Staff Selection */}
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Select Staff
+                    選擇設計師
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {staffMembers.map((staff) => (
@@ -351,7 +352,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 {/* Date Selection */}
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Select Date
+                    選擇日期
                   </p>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -360,7 +361,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                         className="w-full justify-start text-left font-normal h-11 rounded-xl"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(selectedDate, "PPP")}
+                        {format(selectedDate, "PPP", { locale: zhTW })}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -379,7 +380,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 {/* Time Selection */}
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Select Time
+                    選擇時間
                   </p>
                   <div className="grid grid-cols-4 gap-2">
                     {timeSlots.map((time) => (
@@ -410,7 +411,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 disabled={!canProceedToStep2}
                 className="w-full h-12 rounded-xl"
               >
-                Continue
+                下一步
               </Button>
             )}
             {step === 2 && (
@@ -419,7 +420,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 disabled={!canProceedToStep3}
                 className="w-full h-12 rounded-xl"
               >
-                Continue
+                下一步
               </Button>
             )}
             {step === 3 && (
@@ -428,7 +429,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
                 disabled={!canConfirm}
                 className="w-full h-12 rounded-xl"
               >
-                Confirm Booking
+                確認預約
               </Button>
             )}
           </div>
@@ -439,14 +440,14 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
       <Drawer open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>Add New Client</DrawerTitle>
+            <DrawerTitle>新增客戶</DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="newClientName">Client Name</Label>
+              <Label htmlFor="newClientName">客戶姓名</Label>
               <Input
                 id="newClientName"
-                placeholder="Enter client name"
+                placeholder="輸入客戶姓名"
                 value={newClientForm.name}
                 onChange={(e) =>
                   setNewClientForm({ ...newClientForm, name: e.target.value })
@@ -455,7 +456,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newClientPhone">Phone Number</Label>
+              <Label htmlFor="newClientPhone">電話號碼</Label>
               <Input
                 id="newClientPhone"
                 placeholder="0912-345-678"
@@ -473,11 +474,11 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
               disabled={!newClientForm.name.trim() || !newClientForm.phone.trim()}
               className="h-12 rounded-xl"
             >
-              Add & Continue
+              新增並繼續
             </Button>
             <DrawerClose asChild>
               <Button variant="outline" className="h-12 rounded-xl">
-                Cancel
+                取消
               </Button>
             </DrawerClose>
           </DrawerFooter>
@@ -486,5 +487,7 @@ const NewBookingModal = ({ open, onOpenChange }: NewBookingModalProps) => {
     </>
   );
 };
+
+// Also updated service names to Chinese to match local context
 
 export default NewBookingModal;

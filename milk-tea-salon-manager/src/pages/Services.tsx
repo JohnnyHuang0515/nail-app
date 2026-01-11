@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { servicesService, Service } from "@/services/services.service";
+import ImageUpload from "@/components/ImageUpload";
 import { toast } from "sonner";
 
 // Use Service type from service
@@ -42,11 +43,24 @@ const ServiceItem = ({
 }) => {
   return (
     <div className="flex items-center justify-between p-4 bg-card rounded-2xl shadow-soft">
-      <div className="flex-1">
-        <p className="font-semibold text-foreground">{service.name}</p>
-        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{service.duration} 分鐘</span>
+      <div className="flex items-center gap-4 flex-1">
+        {/* Service Image */}
+        <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0">
+          {service.imageUrl ? (
+            <img src={service.imageUrl} alt={service.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <Settings className="w-6 h-6 opacity-20" />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className="font-semibold text-foreground">{service.name}</p>
+          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{service.duration} 分鐘</span>
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -71,7 +85,7 @@ const Services = () => {
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const [form, setForm] = useState({ name: "", duration: "", price: "", category: "" });
+  const [form, setForm] = useState({ name: "", duration: "", price: "", category: "", imageUrl: "" });
 
   // Category management
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -139,7 +153,7 @@ const Services = () => {
 
   const handleAddNew = () => {
     setEditingService(null);
-    setForm({ name: "", duration: "", price: "", category: activeCategory });
+    setForm({ name: "", duration: "", price: "", category: activeCategory, imageUrl: "" });
     setIsDrawerOpen(true);
   };
 
@@ -150,6 +164,7 @@ const Services = () => {
       duration: service.duration.toString(),
       price: service.price.toString(),
       category: service.category,
+      imageUrl: service.imageUrl || "",
     });
     setIsDrawerOpen(true);
   };
@@ -162,6 +177,7 @@ const Services = () => {
       durationMinutes: parseInt(form.duration) || 30,
       price: parseInt(form.price) || 0,
       category: form.category,
+      imageUrl: form.imageUrl,
     };
 
     if (editingService) {
@@ -304,6 +320,15 @@ const Services = () => {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="h-12 rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>服務封面圖</Label>
+              <ImageUpload
+                type="service"
+                currentImage={form.imageUrl}
+                onUpload={(url) => setForm({ ...form, imageUrl: url as string })}
               />
             </div>
             <div className="space-y-2">

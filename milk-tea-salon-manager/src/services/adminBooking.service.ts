@@ -48,13 +48,13 @@ export const adminBookingService = {
     },
 
     async create(data: CreateBookingDTO): Promise<any> {
-        // Reuse the public booking API as it handles customer creation/lookup logic
-        const response = await fetch(PUBLIC_BOOKING_URL, {
+        // Use Admin API to ensure customer is handled correctly (created or found by phone)
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ...data,
-                staffId: data.stylistId // Map stylistId to staffId
+                staffId: data.stylistId // Map stylistId to staffId expected by schema/logic (if reusing schema, but here we used custom logic)
             }),
         });
 
@@ -63,5 +63,22 @@ export const adminBookingService = {
             throw new Error(errorData.error || 'Failed to create booking');
         }
         return response.json();
+    },
+
+    async update(id: string, data: Partial<CreateBookingDTO>): Promise<AdminBooking> {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error('Failed to update booking');
+        return response.json();
+    },
+
+    async delete(id: string): Promise<void> {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete booking');
     }
 };

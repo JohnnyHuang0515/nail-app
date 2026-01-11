@@ -61,6 +61,7 @@ router.get('/', async (req: Request, res: Response) => {
             category: s.category,
             description: s.description,
             isActive: s.isActive,
+            imageUrl: s.imageUrl,
         }));
 
         res.json(formatted);
@@ -95,6 +96,7 @@ router.post('/', async (req: Request, res: Response) => {
             duration: service.durationMinutes,
             price: Number(service.price),
             category: service.category,
+            imageUrl: service.imageUrl,
         });
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -120,6 +122,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         if (data.description !== undefined) updateData.description = data.description;
         if (data.durationMinutes !== undefined) updateData.durationMinutes = data.durationMinutes;
         if (data.price !== undefined) updateData.price = data.price;
+        if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
 
         const service = await prisma.service.update({
             where: { id },
@@ -132,6 +135,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             duration: service.durationMinutes,
             price: Number(service.price),
             category: service.category,
+            imageUrl: service.imageUrl,
         });
     } catch (error) {
         console.error('Error updating service:', error);

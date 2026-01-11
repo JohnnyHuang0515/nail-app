@@ -131,6 +131,7 @@ enum BookingStatus {
   CONFIRMED
   COMPLETED
   CANCELLED
+  NO_SHOW
 }
 
 model BookingItem {

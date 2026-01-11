@@ -76,7 +76,7 @@ export function CreateBookingModal({ open, onOpenChange }: CreateBookingModalPro
         queryKey: ["staff-list"],
         queryFn: async () => {
             const res = await fetch("/api/staff?activeOnly=true");
-            if (!res.ok) throw new Error("Failed");
+            if (!res.ok) throw new Error("請求失敗");
             return res.json();
         }
     });
@@ -86,7 +86,7 @@ export function CreateBookingModal({ open, onOpenChange }: CreateBookingModalPro
         queryKey: ["service-list"],
         queryFn: async () => {
             const res = await fetch("/api/services?activeOnly=true");
-            if (!res.ok) throw new Error("Failed");
+            if (!res.ok) throw new Error("請求失敗");
             return res.json();
         }
     });
@@ -185,7 +185,7 @@ export function CreateBookingModal({ open, onOpenChange }: CreateBookingModalPro
                                 <SelectItem value="no-preference">不指定</SelectItem>
                                 {staffList.map((s) => (
                                     <SelectItem key={s.id} value={s.id}>
-                                        {s.name} ({s.title || s.role})
+                                        {s.displayName} ({s.role})
                                     </SelectItem>
                                 ))}
                             </SelectContent>

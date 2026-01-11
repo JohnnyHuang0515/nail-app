@@ -32,7 +32,7 @@ export interface Stylist {
 const noPreferenceStylist: Stylist = {
   id: "no-preference",
   name: "不指定",
-  nameEn: "Any Available",
+  nameEn: "不指定",
   title: "系統自動安排",
   avatar: "",
   rating: 0,
@@ -83,7 +83,7 @@ const SelectStylist = () => {
           <h1 className="text-2xl font-bold text-foreground">
             選擇美甲師
           </h1>
-          <p className="text-muted-foreground mt-1">Choose your favorite artist</p>
+          <p className="text-muted-foreground mt-1">選擇您喜愛的設計師</p>
         </div>
 
         {/* Loading State */}
@@ -131,7 +131,7 @@ const SelectStylist = () => {
                     <h3 className="font-bold text-lg text-foreground">
                       不指定
                       <span className="text-muted-foreground font-normal text-sm ml-1">
-                        Any Available
+                        系統安排
                       </span>
                     </h3>
                     <p className="text-sm text-muted-foreground">系統自動安排最適合的美甲師</p>

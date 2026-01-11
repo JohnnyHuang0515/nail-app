@@ -6,6 +6,7 @@ export interface Service {
     category: string;
     description?: string;
     isActive?: boolean;
+    imageUrl?: string; // New field
 }
 
 export interface ServiceCreateInput {
@@ -14,6 +15,7 @@ export interface ServiceCreateInput {
     durationMinutes: number;
     price: number;
     description?: string;
+    imageUrl?: string; // New field
 }
 
 const API_URL = '/api/admin/services';

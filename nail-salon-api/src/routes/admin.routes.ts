@@ -100,6 +100,89 @@ router.get('/today-bookings', async (req: Request, res: Response) => {
 // ==================== Booking Management ====================
 
 /**
+ * POST /api/admin/bookings - Create a new booking as Admin
+ * Allows creating booking for any customer (new or existing)
+ */
+router.post('/bookings', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { customerName, customerPhone, stylistId, serviceIds, scheduledAt, notes } = req.body;
+
+        if (!customerName || !customerPhone || !stylistId || !serviceIds || !scheduledAt) {
+            res.status(400).json({ error: '缺少必填欄位 (Missing required fields)' });
+            return;
+        }
+
+        // 1. Calculate services price/duration
+        const services = await prisma.service.findMany({
+            where: { id: { in: serviceIds } }
+        });
+
+        const totalPrice = services.reduce((sum, s) => sum + Number(s.price), 0);
+        const totalDuration = services.reduce((sum, s) => sum + s.durationMinutes, 0);
+
+        // 2. Find or Create User (Customer)
+        let customer = await prisma.user.findFirst({
+            where: { phone: customerPhone }
+        });
+
+        if (!customer) {
+            customer = await prisma.user.create({
+                data: {
+                    name: customerName,
+                    phone: customerPhone,
+                    role: 'CUSTOMER',
+                }
+            });
+        }
+
+        // 3. Handle 'no-preference' stylist
+        let assignedStylistId = stylistId;
+        if (stylistId === 'no-preference') {
+            // Simple auto-assign: find first active staff
+            const firstStaff = await prisma.staff.findFirst({
+                where: { isActive: true }
+            });
+            if (!firstStaff) {
+                res.status(400).json({ error: '無可用的設計師 (No active staff)' });
+                return;
+            }
+            assignedStylistId = firstStaff.id;
+        }
+
+        // 4. Create Booking
+        const booking = await prisma.booking.create({
+            data: {
+                customerId: customer.id,
+                stylistId: assignedStylistId,
+                scheduledAt: scheduledAt,
+                status: 'CONFIRMED', // Admin created bookings are usually confirmed
+                totalPrice: totalPrice,
+                totalDurationMinutes: totalDuration,
+                notes: notes,
+                items: {
+                    create: services.map(s => ({
+                        serviceId: s.id,
+                        price: s.price,
+                        durationMinutes: s.durationMinutes,
+                    }))
+                }
+            },
+            include: {
+                items: { include: { service: true } },
+                stylist: true,
+                customer: true,
+            }
+        });
+
+        res.status(201).json(booking);
+
+    } catch (error) {
+        console.error('Admin create booking error:', error);
+        res.status(500).json({ error: '建立預約失敗' });
+    }
+});
+
+/**
  * GET /api/admin/bookings - List all bookings with filters
  * Query params: status, startDate, endDate
  */
@@ -165,7 +248,7 @@ router.patch('/bookings/:id/status', async (req: Request, res: Response) => {
 
         const validStatuses = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ error: 'Invalid status' });
+            return res.status(400).json({ error: '無效的狀態' });
         }
 
         const booking = await prisma.booking.update({
@@ -180,6 +263,92 @@ router.patch('/bookings/:id/status', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Update booking status error:', error);
         res.status(500).json({ error: 'Failed to update booking status' });
+    }
+});
+
+/**
+ * PUT /api/admin/bookings/:id - Update booking details
+ */
+router.put('/bookings/:id', async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { customerName, customerPhone, stylistId, serviceIds, scheduledAt, notes } = req.body;
+
+        // 1. Calculate services price/duration if services changed
+        let updateData: any = {
+            scheduledAt,
+            notes,
+            stylistId: stylistId === 'no-preference' ? undefined : stylistId // Handle no-preference logic if needed, simplify for update
+        };
+
+        // If stylist is 'no-preference' during update, we should probably pick one? 
+        // Or just keep existing if not provided. For now assume explicit stylistId is sent or we skip.
+        if (stylistId && stylistId !== 'no-preference') {
+            updateData.stylistId = stylistId;
+        }
+
+        // If services updated
+        if (serviceIds && serviceIds.length > 0) {
+            const services = await prisma.service.findMany({
+                where: { id: { in: serviceIds } }
+            });
+            const totalPrice = services.reduce((sum, s) => sum + Number(s.price), 0);
+            const totalDuration = services.reduce((sum, s) => sum + s.durationMinutes, 0);
+
+            updateData.totalPrice = totalPrice;
+            updateData.totalDurationMinutes = totalDuration;
+
+            // Transaction to replace items? Prisma update doesn't support easy replace on relation.
+            // We do separate deleteMany and create.
+            await prisma.bookingItem.deleteMany({ where: { bookingId: id } });
+            await prisma.bookingItem.createMany({
+                data: services.map(s => ({
+                    bookingId: id,
+                    serviceId: s.id,
+                    price: s.price,
+                    durationMinutes: s.durationMinutes
+                }))
+            });
+        }
+
+        // Update user if name/phone changed? Optional but good for consistency.
+        if (customerName || customerPhone) {
+            const booking = await prisma.booking.findUnique({ where: { id }, select: { customerId: true } });
+            if (booking) {
+                await prisma.user.update({
+                    where: { id: booking.customerId },
+                    data: {
+                        name: customerName,
+                        phone: customerPhone
+                    }
+                });
+            }
+        }
+
+        const updatedBooking = await prisma.booking.update({
+            where: { id },
+            data: updateData,
+            include: { items: true, stylist: true, customer: true }
+        });
+
+        res.json(updatedBooking);
+    } catch (error) {
+        console.error('Update booking error:', error);
+        res.status(500).json({ error: 'Failed to update booking' });
+    }
+});
+
+/**
+ * DELETE /api/admin/bookings/:id - Delete booking
+ */
+router.delete('/bookings/:id', async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.booking.delete({ where: { id } });
+        res.json({ message: 'Booking deleted' });
+    } catch (error) {
+        console.error('Delete booking error:', error);
+        res.status(500).json({ error: 'Failed to delete booking' });
     }
 });
 
@@ -210,12 +379,14 @@ router.get('/staff', async (req: Request, res: Response) => {
             isOnShift: staff.isActive, // Use isActive as shift status for now
             phone: staff.user?.phone,
             email: staff.user?.email,
+            avatarUrl: staff.avatarUrl,
+            portfolio: staff.portfolio,
         }));
 
         res.json(formatted);
     } catch (error) {
         console.error('Get admin staff error:', error);
-        res.status(500).json({ error: 'Failed to fetch staff' });
+        res.status(500).json({ error: '無法取得員工資料' });
     }
 });
 
@@ -245,6 +416,8 @@ router.post('/staff', async (req: Request, res: Response) => {
                 isActive: true,
                 rating: 5.0,
                 reviewCount: 0,
+                avatarUrl: req.body.avatarUrl,
+                portfolio: req.body.portfolio || [],
             },
         });
 
@@ -253,10 +426,12 @@ router.post('/staff', async (req: Request, res: Response) => {
             name: staff.displayName,
             role: staff.title,
             isOnShift: staff.isActive,
+            avatarUrl: staff.avatarUrl,
+            portfolio: staff.portfolio,
         });
     } catch (error) {
         console.error('Create staff error:', error);
-        res.status(500).json({ error: 'Failed to create staff' });
+        res.status(500).json({ error: '建立員工失敗' });
     }
 });
 
@@ -272,6 +447,8 @@ router.put('/staff/:id', async (req: Request, res: Response) => {
         if (name !== undefined) updateData.displayName = name;
         if (role !== undefined) updateData.title = role;
         if (isOnShift !== undefined) updateData.isActive = isOnShift;
+        if (req.body.avatarUrl !== undefined) updateData.avatarUrl = req.body.avatarUrl;
+        if (req.body.portfolio !== undefined) updateData.portfolio = req.body.portfolio;
 
         const staff = await prisma.staff.update({
             where: { id },
@@ -283,10 +460,12 @@ router.put('/staff/:id', async (req: Request, res: Response) => {
             name: staff.displayName,
             role: staff.title,
             isOnShift: staff.isActive,
+            avatarUrl: staff.avatarUrl,
+            portfolio: staff.portfolio,
         });
     } catch (error) {
         console.error('Update staff error:', error);
-        res.status(500).json({ error: 'Failed to update staff' });
+        res.status(500).json({ error: '更新員工失敗' });
     }
 });
 
@@ -314,7 +493,7 @@ router.patch('/staff/:id/toggle-shift', async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error('Toggle staff shift error:', error);
-        res.status(500).json({ error: 'Failed to toggle shift' });
+        res.status(500).json({ error: '切換狀態失敗' });
     }
 });
 
@@ -344,7 +523,7 @@ router.delete('/staff/:id', async (req: Request, res: Response) => {
         res.json({ message: 'Staff deleted successfully' });
     } catch (error) {
         console.error('Delete staff error:', error);
-        res.status(500).json({ error: 'Failed to delete staff' });
+        res.status(500).json({ error: '刪除員工失敗' });
     }
 });
 

@@ -14,7 +14,7 @@ const BookingConfirm = () => {
     itemCount: 2,
     selectedDate: new Date().toISOString(),
     selectedTime: "14:00",
-    customerName: "Guest",
+    customerName: "訪客",
     customerPhone: "0912-345-678",
   };
 

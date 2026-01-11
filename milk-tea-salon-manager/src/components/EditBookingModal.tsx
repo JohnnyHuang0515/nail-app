@@ -1,5 +1,8 @@
-import { X, User, Clock, Scissors, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, User, Clock, Scissors, Calendar, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface BookingDetails {
   id: string;
@@ -36,17 +39,32 @@ const EditBookingModal = ({
   onSave,
   onDelete,
 }: EditBookingModalProps) => {
-  if (!booking && !isNewBooking) return null;
+  const [formData, setFormData] = useState<BookingDetails | null>(null);
 
-  const displayBooking = booking || {
-    id: "",
-    clientName: "",
-    service: "",
-    startTime: selectedTime || "10:00",
-    endTime: "",
-    staffName: "",
-    staffColor: "pink" as const,
-    date: new Date(),
+  useEffect(() => {
+    if (booking) {
+      setFormData({ ...booking });
+    } else if (isNewBooking) {
+      // Initialize new booking defaults
+      setFormData({
+        id: "",
+        clientName: "",
+        service: "",
+        startTime: selectedTime || "10:00",
+        endTime: "11:00",
+        staffName: "", // Ideally user selects staff
+        staffColor: "pink",
+        date: new Date(),
+      });
+    }
+  }, [booking, isNewBooking, selectedTime]);
+
+  if (!formData && !isNewBooking) return null;
+
+  if (!formData) return null; // Should not happen
+
+  const handleTimeChange = (type: 'start' | 'end', value: string) => {
+    setFormData(prev => prev ? ({ ...prev, [type === 'start' ? 'startTime' : 'endTime']: value }) : null);
   };
 
   return (
@@ -83,10 +101,17 @@ const EditBookingModal = ({
               <User className="w-5 h-5 text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">客戶</p>
-              <p className="font-semibold text-foreground">
-                {displayBooking.clientName || "選擇客戶..."}
-              </p>
+              <Label className="text-xs text-muted-foreground">客戶</Label>
+              {isNewBooking ? (
+                <Input
+                  className="h-8 mt-1 bg-transparent border-none shadow-none p-0 focus-visible:ring-0 font-semibold"
+                  placeholder="輸入客戶姓名"
+                  value={formData.clientName}
+                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                />
+              ) : (
+                <p className="font-semibold text-foreground">{formData.clientName}</p>
+              )}
             </div>
           </div>
 
@@ -96,23 +121,47 @@ const EditBookingModal = ({
               <Scissors className="w-5 h-5 text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">服務項目</p>
-              <p className="font-semibold text-foreground">
-                {displayBooking.service || "選擇服務..."}
-              </p>
+              <Label className="text-xs text-muted-foreground">服務項目</Label>
+              {isNewBooking ? (
+                <Input
+                  className="h-8 mt-1 bg-transparent border-none shadow-none p-0 focus-visible:ring-0 font-semibold"
+                  placeholder="輸入服務"
+                  value={formData.service}
+                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                />
+              ) : (
+                <p className="font-semibold text-foreground">
+                  {formData.service}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Time */}
+          {/* Time (Editable) */}
           <div className="flex items-center gap-3 p-3 bg-secondary rounded-squircle">
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
               <Clock className="w-5 h-5 text-accent" />
             </div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground">時間</p>
-              <p className="font-semibold text-foreground">
-                {displayBooking.startTime} - {displayBooking.endTime || "??:??"}
-              </p>
+            <div className="flex-1 flex gap-2 items-center">
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">開始</Label>
+                <Input
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => handleTimeChange('start', e.target.value)}
+                  className="h-8 mt-1 bg-transparent border-none shadow-none p-0 focus-visible:ring-0 font-semibold w-full"
+                />
+              </div>
+              <span className="text-muted-foreground">-</span>
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">結束</Label>
+                <Input
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => handleTimeChange('end', e.target.value)}
+                  className="h-8 mt-1 bg-transparent border-none shadow-none p-0 focus-visible:ring-0 font-semibold w-full"
+                />
+              </div>
             </div>
           </div>
 
@@ -121,15 +170,15 @@ const EditBookingModal = ({
             <div
               className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center",
-                staffColorStyles[displayBooking.staffColor]
+                staffColorStyles[formData.staffColor]
               )}
             >
               <Calendar className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-muted-foreground">設計師</p>
+              <Label className="text-xs text-muted-foreground">設計師</Label>
               <p className="font-semibold text-foreground">
-                {displayBooking.staffName || "選擇設計師..."}
+                {formData.staffName || "未指定"}
               </p>
             </div>
           </div>
@@ -139,16 +188,18 @@ const EditBookingModal = ({
         <div className="flex gap-3 mt-6">
           {!isNewBooking && onDelete && (
             <button
-              onClick={() => onDelete(displayBooking.id)}
-              className="flex-1 py-3 rounded-squircle bg-destructive/10 text-destructive font-semibold hover:bg-destructive/20 transition-colors"
+              onClick={() => onDelete(formData.id)}
+              className="flex-1 py-3 rounded-squircle bg-destructive/10 text-destructive font-semibold hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
             >
+              <Trash2 className="w-4 h-4" />
               刪除
             </button>
           )}
           <button
-            onClick={() => onSave(displayBooking)}
-            className="flex-1 py-3 rounded-squircle bg-accent text-accent-foreground font-bold hover:bg-accent/90 transition-colors"
+            onClick={() => onSave(formData)}
+            className="flex-1 py-3 rounded-squircle bg-accent text-accent-foreground font-bold hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
           >
+            <Save className="w-4 h-4" />
             {isNewBooking ? "建立預約" : "儲存變更"}
           </button>
         </div>

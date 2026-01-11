@@ -5,6 +5,8 @@ import { format, isSameDay, addDays, startOfWeek, endOfWeek } from "date-fns";
 import EditBookingModal, { BookingDetails } from "./EditBookingModal";
 import { toast } from "@/hooks/use-toast";
 import { scheduleService } from "@/services/schedule.service";
+import { adminBookingService } from "@/services/adminBooking.service";
+import { zhTW } from "date-fns/locale";
 
 interface TimelineViewProps {
   viewMode: "day" | "week";
@@ -126,22 +128,58 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
     setSelectedTime(undefined);
   };
 
-  const handleSave = (booking: BookingDetails) => {
-    toast({
-      title: isNewBooking ? "預約已建立" : "預約已更新",
-      description: `${booking.clientName || "新預約"} 儲存成功 ✨`,
-    });
-    handleCloseModal();
+
+
+  const handleSave = async (booking: BookingDetails) => {
+    try {
+      // Construct date object from date + startTime
+      const [hours, minutes] = booking.startTime.split(':').map(Number);
+      const scheduledAt = new Date(booking.date);
+      scheduledAt.setHours(hours, minutes, 0, 0);
+
+      if (isNewBooking) {
+        // New booking logic if implemented in modal (Currently modal supports new booking basic data)
+        // But main CreateBookingModal is better for new.
+        // For now, TimelineView supports edit existing well.
+        // If new, we'd use adminBookingService.create
+      } else {
+        await adminBookingService.update(booking.id, {
+          scheduledAt: scheduledAt.toISOString(),
+          // Can also update notes etc if added to modal
+        });
+      }
+
+      toast({
+        title: isNewBooking ? "預約已建立" : "預約已更新",
+        description: `${booking.clientName || "新預約"} 儲存成功 ✨`,
+      });
+      refetch();
+      handleCloseModal();
+    } catch (err) {
+      toast({
+        title: "儲存失敗",
+        description: "請稍後再試",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    // In real implementation, call API to delete booking
-    toast({
-      title: "預約已刪除",
-      description: "此預約已被移除。",
-    });
-    handleCloseModal();
-    refetch(); // Refresh data from API
+  const handleDelete = async (id: string) => {
+    try {
+      await adminBookingService.delete(id);
+      toast({
+        title: "預約已刪除",
+        description: "此預約已被移除。",
+      });
+      handleCloseModal();
+      refetch(); // Refresh data from API
+    } catch (err) {
+      toast({
+        title: "刪除失敗",
+        description: "無法刪除此預約",
+        variant: "destructive"
+      });
+    }
   };
 
   // Get week days for week view (using weekStart from earlier)
@@ -151,7 +189,6 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
     return (
       <>
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Week day headers */}
           <div className="flex border-b border-border pl-12">
             {weekDays.map((day) => (
               <div
@@ -161,7 +198,7 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
                   isSameDay(day, new Date()) && "bg-primary/10 rounded-t-lg"
                 )}
               >
-                <p className="text-xs text-muted-foreground">{format(day, "EEE")}</p>
+                <p className="text-xs text-muted-foreground">{format(day, "EEE", { locale: zhTW })}</p>
                 <p
                   className={cn(
                     "text-sm font-bold",

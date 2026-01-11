@@ -22,7 +22,7 @@ const Schedule = () => {
             >
               <ChevronLeft className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-xl font-bold text-foreground flex-1">行程表</h1>
+            <h1 className="text-xl font-bold text-foreground flex-1">行事曆</h1>
           </div>
 
           <div className="mb-2">

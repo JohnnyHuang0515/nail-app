@@ -15,7 +15,7 @@ const StylistCard = ({ stylist, onSelect, onViewProfile }: StylistCardProps) => 
     <div className="bg-card rounded-2xl p-4 shadow-soft border border-border/50">
       <div className="flex items-start gap-4">
         {/* Avatar - Clickable to view profile */}
-        <button 
+        <button
           onClick={onViewProfile}
           className="flex-shrink-0 transition-transform hover:scale-105 active:scale-95"
         >
@@ -52,8 +52,8 @@ const StylistCard = ({ stylist, onSelect, onViewProfile }: StylistCardProps) => 
           {/* Tags */}
           <div className="flex flex-wrap gap-1.5 mt-2">
             {stylist.tags.map((tag) => (
-              <Badge 
-                key={tag} 
+              <Badge
+                key={tag}
                 variant="secondary"
                 className="text-xs bg-milk-tea/15 text-milk-tea-dark hover:bg-milk-tea/25 border-0"
               >
@@ -62,12 +62,28 @@ const StylistCard = ({ stylist, onSelect, onViewProfile }: StylistCardProps) => 
             ))}
           </div>
 
+          {/* Portfolio Preview (New) */}
+          {stylist.portfolio && stylist.portfolio.length > 0 && (
+            <div className="flex gap-1.5 mt-3 overflow-hidden">
+              {stylist.portfolio.slice(0, 3).map((img, i) => (
+                <div key={i} className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0 border border-border/50">
+                  <img src={img} alt="Portfolio" className="w-full h-full object-cover" />
+                </div>
+              ))}
+              {stylist.portfolio.length > 3 && (
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-xs text-muted-foreground border border-border/50">
+                  +{stylist.portfolio.length - 3}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Review count & Select button */}
           <div className="flex items-center justify-between mt-3">
             <span className="text-xs text-muted-foreground">
               {stylist.reviewCount} 則評價
             </span>
-            <Button 
+            <Button
               onClick={onSelect}
               size="sm"
               className="bg-milk-tea hover:bg-milk-tea/90 text-white rounded-full px-5 shadow-sm"

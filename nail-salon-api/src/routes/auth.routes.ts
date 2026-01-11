@@ -4,6 +4,7 @@ import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import { loginSchema, registerSchema, lineLoginSchema } from '../schemas/auth.schema';
 import { authMiddleware } from '../middleware/auth';
+import { verifyLineToken as verifyLineAccessToken } from '../services/line.service';
 
 const router = Router();
 
@@ -111,37 +112,63 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 // POST /api/auth/line-login - LINE Login for customers (LIFF)
 router.post('/line-login', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { idToken } = lineLoginSchema.parse(req.body);
+        const { idToken, accessToken } = req.body;
 
-        // TODO: Verify LINE ID Token with LINE API
-        // For now, we'll use a placeholder
-        // In production, verify with: https://api.line.me/oauth2/v2.1/verify
+        // Support both idToken (LIFF) and accessToken (LINE Login) flows
+        const tokenToVerify = accessToken || idToken;
 
-        // Mock LINE user data (replace with actual LINE API verification)
-        const lineUserId = 'U' + Math.random().toString(36).substring(7);
-        const lineProfile = {
-            displayName: 'LINE User',
-            pictureUrl: null,
-        };
+        if (!tokenToVerify) {
+            res.status(400).json({ error: 'accessToken or idToken is required' });
+            return;
+        }
+
+        // Verify LINE token with LINE API
+        const lineProfile = await verifyLineAccessToken(tokenToVerify);
+
+        if (!lineProfile) {
+            res.status(401).json({ error: 'Invalid LINE token' });
+            return;
+        }
 
         // Find or create user
-        let user = await prisma.user.findUnique({
-            where: { lineUserId },
+        let user = await prisma.user.findFirst({
+            where: { lineUserId: lineProfile.userId },
         });
 
+        let isNewUser = false;
         if (!user) {
+            isNewUser = true;
             user = await prisma.user.create({
                 data: {
-                    lineUserId,
+                    lineUserId: lineProfile.userId,
                     name: lineProfile.displayName,
                     role: 'CUSTOMER',
                     avatarUrl: lineProfile.pictureUrl,
                 },
             });
+        } else {
+            // Update profile from LINE
+            user = await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    name: lineProfile.displayName,
+                    avatarUrl: lineProfile.pictureUrl,
+                },
+            });
+        }
+
+        // Send welcome notification for new users
+        if (isNewUser && lineProfile.userId) {
+            const { sendRegistrationSuccessNotification } = await import('../services/line.service');
+            sendRegistrationSuccessNotification(
+                lineProfile.userId,
+                lineProfile.displayName,
+                user.phone || undefined
+            ).catch(err => console.error('Registration notification failed:', err));
         }
 
         // Generate tokens
-        const accessToken = generateAccessToken({ userId: user.id, role: user.role });
+        const jwtAccessToken = generateAccessToken({ userId: user.id, role: user.role });
         const refreshToken = generateRefreshToken({ userId: user.id, role: user.role });
 
         res.json({
@@ -150,8 +177,9 @@ router.post('/line-login', async (req: Request, res: Response): Promise<void> =>
                 name: user.name,
                 role: user.role,
                 avatarUrl: user.avatarUrl,
+                lineUserId: user.lineUserId,
             },
-            accessToken,
+            accessToken: jwtAccessToken,
             refreshToken,
         });
     } catch (error: any) {

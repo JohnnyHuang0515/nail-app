@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { startOfDay, endOfDay, parseISO, addMinutes } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 const router = Router();
+
+// Timezone for Taiwan
+const TIMEZONE = 'Asia/Taipei';
 
 // Staff color mapping
 const staffColors: Array<'pink' | 'blue' | 'lavender' | 'peach'> = ['pink', 'blue', 'lavender', 'peach'];
@@ -56,8 +60,8 @@ router.get('/', async (req, res) => {
             const stylistIdHash = booking.stylistId.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
             const staffColor = staffColors[stylistIdHash % staffColors.length];
 
-            // Calculate start and end times
-            const scheduledDate = new Date(booking.scheduledAt);
+            // Convert UTC to Taiwan timezone for display
+            const scheduledDate = toZonedTime(new Date(booking.scheduledAt), TIMEZONE);
             const endDate = addMinutes(scheduledDate, booking.totalDurationMinutes);
 
             const startTime = `${scheduledDate.getHours().toString().padStart(2, '0')}:${scheduledDate.getMinutes().toString().padStart(2, '0')}`;

@@ -150,6 +150,21 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             }
         });
 
+        // Send LINE notification when booking is created (if customer has LINE ID)
+        if (booking.customer?.lineUserId) {
+            const { sendBookingCreatedNotification } = await import('../services/line.service');
+            const serviceName = services.map(s => s.name).join(', ');
+
+            sendBookingCreatedNotification(
+                booking.customer.lineUserId,
+                booking.customer.name || '貴賓',
+                serviceName,
+                new Date(booking.scheduledAt),
+                booking.stylist?.displayName || '設計師',
+                Number(booking.totalPrice)
+            ).catch(err => console.error('LINE notification failed:', err));
+        }
+
         res.status(201).json(booking);
     } catch (error: any) {
         if (error.name === 'ZodError') {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Calendar, User, Phone } from "lucide-react";
 import { format } from "date-fns";
@@ -6,13 +6,14 @@ import MobileFrame from "@/components/MobileFrame";
 import BottomNav from "@/components/BottomNav";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import BirthdayPicker from "@/components/BirthdayPicker";
-import MemberLoginCard from "@/components/booking/MemberLoginCard";
+import LineLoginSection from "@/components/booking/LineLoginSection";
 import CouponSection, { Coupon } from "@/components/booking/CouponSection";
 import PaymentMethodSection, { PaymentMethod } from "@/components/booking/PaymentMethodSection";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { bookingService } from "@/services/booking.service";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/services/auth.service";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -26,9 +27,9 @@ const BookingDetails = () => {
     stylist: null
   };
 
-  // Member state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [memberPhone, setMemberPhone] = useState("");
+  // Get auth state from store
+  const { user, isProfileComplete } = useAuthStore();
+  const isLoggedIn = !!user;
 
   // Coupon state
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
@@ -39,9 +40,22 @@ const BookingDetails = () => {
   const [formData, setFormData] = useState({
     phone: "",
     name: "",
-    gender: "" as "female" | "male" | "",
+    gender: "" as "female" | "male" | "other" | "",
     birthday: undefined as Date | undefined,
   });
+
+  // Auto-fill form when user data is available
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        phone: user.phone || prev.phone,
+        gender: (user.gender as "female" | "male" | "other" | "") || prev.gender,
+        birthday: user.birthday ? new Date(user.birthday) : prev.birthday,
+      }));
+    }
+  }, [user]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
@@ -60,10 +74,10 @@ const BookingDetails = () => {
           ...bookingData,
           bookingId: data.id,
           bookingRef: data.id.slice(-6).toUpperCase(), // Use last 6 chars as ref
-          customerName: formData.name,
-          customerPhone: formData.phone,
-          customerGender: formData.gender,
-          customerBirthday: formData.birthday?.toISOString(),
+          customerName: user?.name || formData.name,
+          customerPhone: user?.phone || formData.phone,
+          customerGender: user?.gender || formData.gender,
+          customerBirthday: user?.birthday || formData.birthday?.toISOString(),
           coupon: selectedCoupon,
           discount,
           finalPrice,
@@ -85,6 +99,9 @@ const BookingDetails = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    // If profile is complete, skip validation (use stored data)
+    if (isProfileComplete) return true;
+
     if (!formData.phone.trim()) {
       newErrors.phone = "請輸入電話號碼";
     } else if (!/^[0-9]{8,15}$/.test(formData.phone.replace(/[-\s]/g, ''))) {
@@ -99,21 +116,6 @@ const BookingDetails = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleLogin = (phone: string) => {
-    setIsLoggedIn(true);
-    setMemberPhone(phone);
-    // Auto-fill phone in form
-    if (!formData.phone) {
-      setFormData(prev => ({ ...prev, phone }));
-    }
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setMemberPhone("");
-    setSelectedCoupon(null);
   };
 
   const handleConfirm = () => {
@@ -157,13 +159,8 @@ const BookingDetails = () => {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {/* Member Login Section */}
-          <MemberLoginCard
-            isLoggedIn={isLoggedIn}
-            memberPhone={memberPhone}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-          />
+          {/* LINE Login Section */}
+          <LineLoginSection />
 
           {/* Booking Summary Card */}
           <div className="bg-card rounded-2xl p-4 border border-border">
@@ -303,7 +300,7 @@ const BookingDetails = () => {
                       : "bg-background text-foreground border-border hover:border-milk-tea"
                   )}
                 >
-                  👩 女
+                  女
                 </button>
                 <button
                   type="button"
@@ -315,7 +312,7 @@ const BookingDetails = () => {
                       : "bg-background text-foreground border-border hover:border-primary"
                   )}
                 >
-                  👨 男
+                  男
                 </button>
               </div>
             </div>

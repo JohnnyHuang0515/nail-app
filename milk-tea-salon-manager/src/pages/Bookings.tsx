@@ -16,8 +16,12 @@ import {
 import { adminBookingService, BookingStatus, AdminBooking } from "@/services/adminBooking.service";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { zhTW } from "date-fns/locale";
 import { CreateBookingModal } from "@/components/CreateBookingModal";
+
+// Timezone for Taiwan
+const TIMEZONE = "Asia/Taipei";
 
 // ... (keep BookingCard and statusConfig as is, or use omit if possible, but replace tool needs full context if contiguous)
 // To keep it simple, checking line 129 for Component start
@@ -38,7 +42,8 @@ const BookingCard = ({
     onStatusChange: (id: string, status: BookingStatus) => void;
 }) => {
     const config = statusConfig[booking.status];
-    const scheduledDate = new Date(booking.scheduledAt);
+    // Convert UTC to Taiwan timezone for display
+    const scheduledDate = toZonedTime(new Date(booking.scheduledAt), TIMEZONE);
 
     return (
         <div className="bg-card rounded-xl p-4 shadow-soft space-y-3">

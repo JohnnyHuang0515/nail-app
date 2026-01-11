@@ -18,6 +18,8 @@ model User {
   role         UserRole
   name         String
   phone        String?
+  gender       String?   // 'female', 'male', 'other'
+  birthday     DateTime?
   avatarUrl    String?   @map("avatar_url")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")

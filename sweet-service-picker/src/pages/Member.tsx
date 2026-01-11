@@ -1,40 +1,17 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import MobileFrame from "@/components/MobileFrame";
 import BottomNav from "@/components/BottomNav";
-import { User, Settings, Heart, Gift, Bell, LogIn, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { User, Settings, Heart, Gift, Bell, Loader2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { memberService, MemberProfile } from "@/services/member.service";
+import { useAuthStore } from "@/services/auth.service";
+import LineLoginSection from "@/components/booking/LineLoginSection";
 
 const Member = () => {
-  const [profile, setProfile] = useState<MemberProfile | null>(null);
-  const [phone, setPhone] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, logout, isLoading } = useAuthStore();
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    if (!phone) {
-      toast.error("請輸入電話號碼");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const data = await memberService.getProfileByPhone(phone);
-      if (data) {
-        setProfile(data);
-        toast.success("歡迎回來！");
-      } else {
-        toast.error("找不到會員資料，請確認電話號碼");
-      }
-    } catch (error) {
-      toast.error("登入失敗，請稍後再試");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!profile) {
+  // If not logged in, show LINE Login
+  if (!user) {
     return (
       <MobileFrame>
         <div className="h-full flex flex-col bg-background">
@@ -44,24 +21,11 @@ const Member = () => {
             </div>
             <h1 className="text-2xl font-bold mb-2">會員登入</h1>
             <p className="text-muted-foreground mb-8 text-center">
-              輸入電話號碼以查看您的會員權益與預約紀錄
+              使用 LINE 登入以查看您的會員權益與預約紀錄
             </p>
 
-            <div className="w-full space-y-4">
-              <Input
-                placeholder="請輸入電話號碼 (e.g. 0912345678)"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="text-lg h-12"
-              />
-              <Button
-                onClick={handleLogin}
-                className="w-full h-12 text-lg"
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5 mr-2" />}
-                登入
-              </Button>
+            <div className="w-full">
+              <LineLoginSection />
             </div>
           </div>
           <BottomNav activeTab="member" />
@@ -69,6 +33,11 @@ const Member = () => {
       </MobileFrame>
     );
   }
+
+  // Calculate Member Tier/Points (Mock for now, could fetch real logic later)
+  // In real app, these should come from user object or separate API call
+  const memberTier: string = 'Bronze'; // Default
+  const points = 0; // Default
 
   return (
     <MobileFrame>
@@ -79,9 +48,9 @@ const Member = () => {
           <div className="bg-gradient-to-br from-pastel-pink/40 via-cream to-secondary/30 px-5 py-8">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full bg-card border-4 border-card shadow-soft overflow-hidden flex items-center justify-center">
-                {profile.avatarUrl ? (
+                {user.avatarUrl ? (
                   <img
-                    src={profile.avatarUrl}
+                    src={user.avatarUrl}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -90,15 +59,15 @@ const Member = () => {
                 )}
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">{profile.name}</h1>
+                <h1 className="text-xl font-bold text-foreground">{user.name}</h1>
                 <p className="text-sm text-muted-foreground">
-                  {profile.memberTier === 'Platinum' ? '白金會員 💎' :
-                    profile.memberTier === 'Gold' ? '金卡會員 🥇' :
-                      profile.memberTier === 'Silver' ? '銀卡會員 🥈' : '銅卡會員 🥉'}
+                  {memberTier === 'Platinum' ? '白金會員 💎' :
+                    memberTier === 'Gold' ? '金卡會員 🥇' :
+                      memberTier === 'Silver' ? '銀卡會員 🥈' : '銅卡會員 🥉'}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="px-3 py-1 bg-pastel-pink/30 rounded-full text-xs font-medium text-pastel-pink-hover">
-                    {profile.points} 點數
+                    {points} 點數
                   </span>
                 </div>
               </div>
@@ -110,14 +79,14 @@ const Member = () => {
             <h2 className="text-sm font-medium text-muted-foreground mb-3">我的帳戶</h2>
 
             {[
-              { icon: Heart, label: '我的收藏', count: 12 },
-              { icon: Gift, label: '優惠券', count: 3 },
-              { icon: Bell, label: '通知中心', count: 1 },
-              { icon: Settings, label: '設定' },
+              { icon: Calendar, label: '我的預約', path: '/member/bookings' },
+              { icon: Gift, label: '優惠券', path: '/member/coupons', count: 2 },
+              { icon: Settings, label: '編輯個人資料', path: '/member/profile' },
             ].map((item, index) => (
               <button
                 key={index}
                 className="w-full flex items-center gap-4 p-4 bg-card rounded-2xl border border-border hover:border-pastel-pink/50 transition-colors"
+                onClick={() => navigate(item.path)}
               >
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
                   <item.icon className="w-5 h-5 text-muted-foreground" />
@@ -136,7 +105,7 @@ const Member = () => {
             <Button
               variant="outline"
               className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={() => setProfile(null)}
+              onClick={logout}
             >
               登出
             </Button>

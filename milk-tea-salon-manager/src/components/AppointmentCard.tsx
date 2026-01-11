@@ -60,8 +60,7 @@ const AppointmentCard = ({ appointment, onAction, index }: AppointmentCardProps)
       <div className="flex items-center gap-3">
         {/* Time Badge */}
         <div className="flex-shrink-0 w-14 h-14 bg-secondary rounded-xl flex flex-col items-center justify-center">
-          <span className="text-lg font-bold text-foreground">{appointment.time.split(":")[0]}</span>
-          <span className="text-xs text-muted-foreground">:{appointment.time.split(":")[1]}</span>
+          <span className="text-base font-bold text-foreground">{appointment.time}</span>
         </div>
 
         {/* Client Info */}

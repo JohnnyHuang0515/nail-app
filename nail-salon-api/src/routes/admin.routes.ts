@@ -18,7 +18,7 @@ router.get('/dashboard-stats', async (req: Request, res: Response) => {
                     gte: start,
                     lte: end,
                 },
-                status: 'COMPLETED', // Use completed for revenue
+                status: { in: ['COMPLETED', 'CONFIRMED'] }, // Calculate projected revenue too
             },
             select: {
                 totalPrice: true,
@@ -246,7 +246,7 @@ router.patch('/bookings/:id/status', async (req: Request, res: Response) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
+        const validStatuses = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: '無效的狀態' });
         }

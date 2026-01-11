@@ -56,6 +56,7 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/services', adminServicesRoutes); // TEMP: No auth for testing
 app.use('/api/admin/settings', settingsRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 
 app.get('/api', (req, res) => {

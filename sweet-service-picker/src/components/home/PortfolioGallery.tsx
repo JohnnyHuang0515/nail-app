@@ -72,7 +72,7 @@ const PortfolioGallery = () => {
     <div className="px-5 py-4">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">💅</span>
-        <h2 className="font-bold text-foreground text-lg">熱門作品 (Trending)</h2>
+        <h2 className="font-bold text-foreground text-lg">熱門作品</h2>
       </div>
 
       {/* Uniform Grid */}

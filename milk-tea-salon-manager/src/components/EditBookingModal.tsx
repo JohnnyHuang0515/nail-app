@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, User, Clock, Scissors, Calendar, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,8 @@ const EditBookingModal = ({
         staffColor: "pink",
         date: new Date(),
       });
+    } else {
+      setFormData(null);
     }
   }, [booking, isNewBooking, selectedTime]);
 
@@ -67,12 +70,20 @@ const EditBookingModal = ({
     setFormData(prev => prev ? ({ ...prev, [type === 'start' ? 'startTime' : 'endTime']: value }) : null);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      {/* Backdrop */}
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center"
+      onClick={(e) => {
+        // Close if clicking the container (backdrop area)
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      {/* Backdrop - Visual Only */}
       <div
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
+        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm animate-fade-in -z-10"
+        aria-hidden="true"
       />
 
       {/* Modal */}
@@ -86,8 +97,12 @@ const EditBookingModal = ({
             {isNewBooking ? "新增預約" : "編輯預約"}
           </h3>
           <button
-            onClick={onClose}
-            className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors relative z-20"
           >
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -102,16 +117,12 @@ const EditBookingModal = ({
             </div>
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">客戶</Label>
-              {isNewBooking ? (
-                <Input
-                  className="h-8 mt-1 bg-transparent border-none shadow-none p-0 focus-visible:ring-0 font-semibold"
-                  placeholder="輸入客戶姓名"
-                  value={formData.clientName}
-                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                />
-              ) : (
-                <p className="font-semibold text-foreground">{formData.clientName}</p>
-              )}
+              <Input
+                className="h-8 mt-1 bg-transparent border-none shadow-none p-0 focus-visible:ring-0 font-semibold"
+                placeholder="輸入客戶姓名"
+                value={formData.clientName}
+                onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+              />
             </div>
           </div>
 
@@ -188,14 +199,16 @@ const EditBookingModal = ({
         <div className="flex gap-3 mt-6">
           {!isNewBooking && onDelete && (
             <button
-              onClick={() => onDelete(formData.id)}
+              type="button"
+              onClick={() => onDelete(formData.id)} // Parent handles logic (delete vs no-show)
               className="flex-1 py-3 rounded-squircle bg-destructive/10 text-destructive font-semibold hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
-              刪除
+              未到
             </button>
           )}
           <button
+            type="button"
             onClick={() => onSave(formData)}
             className="flex-1 py-3 rounded-squircle bg-accent text-accent-foreground font-bold hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
           >
@@ -204,7 +217,8 @@ const EditBookingModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Calendar } from 'lucide-react';
+import { User, Calendar, ArrowLeft } from 'lucide-react';
 import MobileFrame from '@/components/MobileFrame';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,10 @@ import { updateUserProfile, useAuthStore } from '@/services/auth.service';
 
 type Gender = 'female' | 'male' | 'other';
 
-const ProfileSetup = () => {
+const EditProfile = () => {
     const navigate = useNavigate();
+    const { user } = useAuthStore();
+
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -23,6 +25,18 @@ const ProfileSetup = () => {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Initialize form with user data
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                phone: user.phone || '',
+                gender: (user.gender as Gender) || '',
+                birthday: user.birthday ? new Date(user.birthday) : undefined
+            });
+        }
+    }, [user]);
 
     // Validate form
     const validate = () => {
@@ -50,8 +64,6 @@ const ProfileSetup = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const { user } = useAuthStore();
-
     const handleSubmit = async () => {
         if (!validate()) return;
         if (!user) {
@@ -70,8 +82,8 @@ const ProfileSetup = () => {
             });
 
             if (updatedUser) {
-                toast.success('資料儲存成功！');
-                navigate('/');
+                toast.success('資料更新成功！');
+                navigate('/member');
             } else {
                 throw new Error('Update failed');
             }
@@ -83,19 +95,31 @@ const ProfileSetup = () => {
         }
     };
 
+    if (!user) {
+        return (
+            <MobileFrame>
+                <div className="h-full flex items-center justify-center">
+                    <p>請先登入</p>
+                </div>
+            </MobileFrame>
+        );
+    }
+
     return (
         <MobileFrame>
             <div className="h-full flex flex-col bg-background">
                 {/* Header */}
-                <div className="flex-1 flex flex-col items-center justify-center px-6">
-                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                        <User className="w-10 h-10 text-primary" />
-                    </div>
-                    <h1 className="text-2xl font-bold mb-2">完善您的資料</h1>
-                    <p className="text-muted-foreground mb-8 text-center">
-                        請填寫以下資料以完成註冊
-                    </p>
+                <div className="p-4 border-b border-border flex items-center gap-3 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-foreground" />
+                    </button>
+                    <h1 className="text-lg font-bold text-foreground">編輯個人資料</h1>
+                </div>
 
+                <div className="flex-1 overflow-y-auto px-6 py-8">
                     <div className="w-full space-y-4">
                         {/* 姓名 */}
                         <div className="space-y-2">
@@ -197,7 +221,7 @@ const ProfileSetup = () => {
                             className="w-full h-12 text-lg mt-6"
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? '處理中...' : '確認送出'}
+                            {isSubmitting ? '儲存中...' : '儲存變更'}
                         </Button>
                     </div>
                 </div>
@@ -206,4 +230,4 @@ const ProfileSetup = () => {
     );
 };
 
-export default ProfileSetup;
+export default EditProfile;

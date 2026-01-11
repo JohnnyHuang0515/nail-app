@@ -11,6 +11,9 @@ import BookingDetails from "./pages/BookingDetails";
 import BookingConfirm from "./pages/BookingConfirm";
 import Member from "./pages/Member";
 import ProfileSetup from "./pages/ProfileSetup";
+import MyBookings from "./pages/MyBookings";
+import MyCoupons from "./pages/MyCoupons";
+import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,9 @@ const App = () => (
           <Route path="/booking/details" element={<BookingDetails />} />
           <Route path="/booking/confirm" element={<BookingConfirm />} />
           <Route path="/member" element={<Member />} />
+          <Route path="/member/bookings" element={<MyBookings />} />
+          <Route path="/member/coupons" element={<MyCoupons />} />
+          <Route path="/member/profile" element={<EditProfile />} />
           <Route path="/profile-setup" element={<ProfileSetup />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

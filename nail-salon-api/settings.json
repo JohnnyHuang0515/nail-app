@@ -1,5 +1,5 @@
 {
-  "storeName": "Nail Salon",
+  "storeName": "Johnny",
   "bookingUrl": "liff.line.me/1234567890-abcdefgh",
   "businessHours": [
     {
@@ -48,5 +48,7 @@
   "notifications": {
     "lineReminder": true,
     "reminderHoursBefore": 24
-  }
+  },
+  "address": "大安區",
+  "phone": "0912345678"
 }

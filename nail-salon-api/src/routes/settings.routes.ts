@@ -16,6 +16,8 @@ interface BusinessHour {
 
 interface Settings {
     storeName: string;
+    address: string;
+    phone: string;
     bookingUrl: string;
     businessHours: BusinessHour[];
     notifications: {
@@ -25,7 +27,9 @@ interface Settings {
 }
 
 const defaultSettings: Settings = {
-    storeName: "Nail Salon",
+    storeName: "MIKA Studio",
+    address: "台北市大安區忠孝東路四段123號3樓",
+    phone: "02-1234-5678",
     bookingUrl: "liff.line.me/1234567890-abcdefgh",
     businessHours: [
         { day: "週一", isOpen: true, open: "10:00", close: "20:00" },

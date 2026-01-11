@@ -131,7 +131,7 @@ const BookingDetails = () => {
         scheduledAt: `${format(selectedDate, 'yyyy-MM-dd')}T${bookingData.selectedTime}:00Z`,
         customerName: formData.name,
         customerPhone: formData.phone,
-        notes: `Gender: ${formData.gender}, Birthday: ${formData.birthday ? format(formData.birthday, 'yyyy-MM-dd') : 'N/A'}`,
+        notes: `性別: ${formData.gender === 'female' ? '女' : formData.gender === 'male' ? '男' : '其他'}, 生日: ${formData.birthday ? format(formData.birthday, 'yyyy-MM-dd') : '未提供'}`,
       };
 
       createBookingMutation.mutate(payload);

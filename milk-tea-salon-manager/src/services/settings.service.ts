@@ -7,6 +7,8 @@ export interface BusinessHour {
 
 export interface Settings {
     storeName: string;
+    address: string;
+    phone: string;
     bookingUrl: string;
     businessHours: BusinessHour[];
     notifications: {

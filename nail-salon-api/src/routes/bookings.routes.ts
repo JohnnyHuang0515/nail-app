@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { z } from 'zod';
 import { getStaffAvailability } from '../utils/availability';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
@@ -172,6 +173,73 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             return;
         }
         console.error('Create booking error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+// GET /api/bookings/my-bookings - Get current user bookings
+router.get('/my-bookings', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+    try {
+        // @ts-ignore
+        const userId = req.user!.userId;
+
+        const bookings = await prisma.booking.findMany({
+            where: { customerId: userId },
+            include: {
+                items: { include: { service: true } },
+                stylist: true,
+            },
+            orderBy: { scheduledAt: 'desc' }
+        });
+
+        res.json(bookings);
+    } catch (error) {
+        console.error('Get my-bookings error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /api/bookings/:id/cancel - Cancel a booking
+router.post('/:id/cancel', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+    try {
+        // @ts-ignore
+        const userId = req.user!.userId;
+        const bookingId = req.params.id;
+
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId },
+        });
+
+        if (!booking) {
+            res.status(404).json({ error: 'Booking not found' });
+            return;
+        }
+
+        // Verify ownership
+        if (booking.customerId !== userId) {
+            res.status(403).json({ error: 'Unauthorized' });
+            return;
+        }
+
+        // Check if cancellable (e.g., > 24 hours before?)
+        // For MVP, just allow cancel if not COMPLETED or CANCELLED
+        if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(booking.status)) {
+            res.status(400).json({ error: 'Cannot cancel completed or already cancelled booking' });
+            return;
+        }
+
+        const updatedBooking = await prisma.booking.update({
+            where: { id: bookingId },
+            data: {
+                status: 'CANCELLED',
+                cancelledAt: new Date(),
+            },
+        });
+
+        res.json(updatedBooking);
+    } catch (error) {
+        console.error('Cancel booking error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

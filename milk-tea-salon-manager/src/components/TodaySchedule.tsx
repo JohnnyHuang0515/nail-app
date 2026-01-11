@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AppointmentCard, { Appointment } from "./AppointmentCard";
 import { adminService, Booking } from "@/services/admin.service";
+import { adminBookingService } from "@/services/adminBooking.service";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -8,6 +9,8 @@ const mapStatus = (status: string): "upcoming" | "checked-in" | "completed" => {
   switch (status) {
     case "COMPLETED":
       return "completed";
+    case "CHECKED_IN":
+      return "checked-in";
     case "CHECKED_IN":
       return "checked-in";
     case "CONFIRMED":
@@ -42,21 +45,25 @@ const TodaySchedule = () => {
     fetchBookings();
   }, []);
 
-  const handleAction = (id: string, action: "check-in" | "mark-paid") => {
-    // In a real app, we would call an API here to update status
-    setAppointments((prev) =>
-      prev.map((apt) => {
-        if (apt.id === id) {
-          if (action === "check-in" && apt.status === "upcoming") {
-            return { ...apt, status: "checked-in" };
-          }
-          if (action === "mark-paid" && apt.status === "checked-in") {
-            return { ...apt, status: "completed" };
-          }
-        }
-        return apt;
-      })
-    );
+  const handleAction = async (id: string, action: "check-in" | "mark-paid") => {
+    try {
+      if (action === "check-in") {
+        await adminBookingService.updateStatus(id, "CHECKED_IN");
+        setAppointments((prev) =>
+          prev.map((apt) => (apt.id === id ? { ...apt, status: "checked-in" } : apt))
+        );
+        toast.success("已完成報到");
+      } else if (action === "mark-paid") {
+        await adminBookingService.updateStatus(id, "COMPLETED");
+        setAppointments((prev) =>
+          prev.map((apt) => (apt.id === id ? { ...apt, status: "completed" } : apt))
+        );
+        toast.success("已完成結帳");
+      }
+    } catch (error) {
+      console.error("Action failed:", error);
+      toast.error("操作失敗");
+    }
   };
 
   return (

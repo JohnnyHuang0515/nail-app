@@ -29,6 +29,7 @@ const TIMEZONE = "Asia/Taipei";
 const statusConfig: Record<BookingStatus, { label: string; color: string; bgColor: string }> = {
     PENDING: { label: "待確認", color: "text-orange-600", bgColor: "bg-orange-100" },
     CONFIRMED: { label: "已確認", color: "text-blue-600", bgColor: "bg-blue-100" },
+    CHECKED_IN: { label: "已報到", color: "text-purple-600", bgColor: "bg-purple-100" },
     COMPLETED: { label: "已完成", color: "text-green-600", bgColor: "bg-green-100" },
     CANCELLED: { label: "已取消", color: "text-gray-600", bgColor: "bg-gray-100" },
     NO_SHOW: { label: "未到", color: "text-red-600", bgColor: "bg-red-100" },
@@ -112,11 +113,11 @@ const BookingCard = ({
                             <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8 px-3 text-green-600 border-green-200 hover:bg-green-50"
-                                onClick={() => onStatusChange(booking.id, "COMPLETED")}
+                                className="h-8 px-3 text-purple-600 border-purple-200 hover:bg-purple-50"
+                                onClick={() => onStatusChange(booking.id, "CHECKED_IN")}
                             >
                                 <Check className="w-4 h-4 mr-1" />
-                                完成
+                                報到
                             </Button>
                             <Button
                                 size="sm"
@@ -128,6 +129,17 @@ const BookingCard = ({
                                 未到
                             </Button>
                         </>
+                    )}
+                    {booking.status === "CHECKED_IN" && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-3 text-green-600 border-green-200 hover:bg-green-50"
+                            onClick={() => onStatusChange(booking.id, "COMPLETED")}
+                        >
+                            <Check className="w-4 h-4 mr-1" />
+                            結帳
+                        </Button>
                     )}
                 </div>
             </div>
@@ -195,6 +207,7 @@ const Bookings = () => {
                             <SelectItem value="all">全部</SelectItem>
                             <SelectItem value="PENDING">待確認</SelectItem>
                             <SelectItem value="CONFIRMED">已確認</SelectItem>
+                            <SelectItem value="CHECKED_IN">已報到</SelectItem>
                             <SelectItem value="COMPLETED">已完成</SelectItem>
                             <SelectItem value="CANCELLED">已取消</SelectItem>
                             <SelectItem value="NO_SHOW">未到</SelectItem>

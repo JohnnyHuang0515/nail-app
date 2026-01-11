@@ -35,6 +35,8 @@ const Settings = () => {
 
   // Local state for editing
   const [shopName, setShopName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
   const [bookingUrl, setBookingUrl] = useState("");
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>([]);
   const [notifications, setNotifications] = useState({
@@ -52,6 +54,8 @@ const Settings = () => {
   useEffect(() => {
     if (settings) {
       setShopName(settings.storeName);
+      setAddress(settings.address || "");
+      setPhone(settings.phone || "");
       setBookingUrl(settings.bookingUrl);
       setBusinessHours(settings.businessHours);
       setNotifications(settings.notifications);
@@ -73,6 +77,8 @@ const Settings = () => {
   const handleSaveAll = () => {
     updateSettingsMutation.mutate({
       storeName: shopName,
+      address: address,
+      phone: phone,
       bookingUrl: bookingUrl,
       businessHours: businessHours,
       notifications: notifications
@@ -180,6 +186,26 @@ const Settings = () => {
                   id="shopName"
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
+                  className="h-10 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address" className="text-xs text-muted-foreground">地址</Label>
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="h-10 rounded-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-xs text-muted-foreground">電話</Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="h-10 rounded-lg"
                 />
               </div>

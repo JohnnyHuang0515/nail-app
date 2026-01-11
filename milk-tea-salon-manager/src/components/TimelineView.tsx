@@ -145,7 +145,7 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
       } else {
         await adminBookingService.update(booking.id, {
           scheduledAt: scheduledAt.toISOString(),
-          // Can also update notes etc if added to modal
+          customerName: booking.clientName, // Pass updated name
         });
       }
 
@@ -166,17 +166,17 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
 
   const handleDelete = async (id: string) => {
     try {
-      await adminBookingService.delete(id);
+      await adminBookingService.updateStatus(id, 'NO_SHOW');
       toast({
-        title: "預約已刪除",
-        description: "此預約已被移除。",
+        title: "已標記為未到",
+        description: "此預約已釋出。",
       });
       handleCloseModal();
       refetch(); // Refresh data from API
     } catch (err) {
       toast({
-        title: "刪除失敗",
-        description: "無法刪除此預約",
+        title: "操作失敗",
+        description: "無法標記此預約",
         variant: "destructive"
       });
     }

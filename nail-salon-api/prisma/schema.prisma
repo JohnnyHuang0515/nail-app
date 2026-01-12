@@ -109,7 +109,7 @@ model Booking {
   customerId           String        @map("customer_id")
   stylistId            String        @map("stylist_id")
   scheduledAt          DateTime      @map("scheduled_at")
-  status               BookingStatus @default(PENDING)
+  status               BookingStatus @default(CONFIRMED)
   totalPrice           Decimal       @db.Decimal(10, 2) @map("total_price")
   totalDurationMinutes Int           @map("total_duration_minutes")
   notes                String?
@@ -127,11 +127,9 @@ model Booking {
 }
 
 enum BookingStatus {
-  PENDING
   CONFIRMED
   CHECKED_IN
   COMPLETED
-  CANCELLED
   NO_SHOW
 }
 

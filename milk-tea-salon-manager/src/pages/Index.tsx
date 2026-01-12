@@ -5,28 +5,36 @@ import DashboardHeader from "@/components/DashboardHeader";
 import StatsCarousel from "@/components/StatsCarousel";
 import TodaySchedule from "@/components/TodaySchedule";
 import { adminService, DashboardStats } from "@/services/admin.service";
+import { settingsService } from "@/services/settings.service";
 import { toast } from "sonner";
 
 const Index = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [storeName, setStoreName] = useState<string>("店長");
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const data = await adminService.getDashboardStats();
-        setStats(data);
+        const [statsData, settingsData] = await Promise.all([
+          adminService.getDashboardStats(),
+          settingsService.getSettings(),
+        ]);
+        setStats(statsData);
+        if (settingsData.storeName) {
+          setStoreName(settingsData.storeName);
+        }
       } catch (error) {
-        console.error("Failed to fetch dashboard stats:", error);
+        console.error("Failed to fetch dashboard data:", error);
         toast.error("無法載入儀表板數據");
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full bg-background relative z-0">
-        <DashboardHeader managerName="Mika" notificationCount={3} />
+      <div className="flex flex-col h-full bg-background">
+        <DashboardHeader managerName={storeName} notificationCount={3} />
         <StatsCarousel stats={stats} />
         <TodaySchedule />
         <BottomNavBar /> {/* Add BottomNavBar */}

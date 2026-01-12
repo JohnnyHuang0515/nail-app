@@ -130,7 +130,7 @@ const Clients = () => {
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-background relative">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3">
           <h1 className="text-xl font-bold text-foreground">客戶列表</h1>
@@ -154,7 +154,7 @@ const Clients = () => {
         </div>
 
         {/* Client List */}
-        <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-2">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-4 space-y-2">
           {isLoading ? (
             <div className="flex items-center justify-center h-40">
               <span className="text-muted-foreground">載入中...</span>
@@ -179,7 +179,7 @@ const Clients = () => {
         {/* FAB */}
         <button
           onClick={handleAddNew}
-          className="fixed bottom-24 right-8 w-14 h-14 bg-accent text-accent-foreground rounded-full shadow-fab flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 z-40"
+          className="absolute bottom-24 right-4 w-14 h-14 bg-accent text-accent-foreground rounded-full shadow-fab flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 z-40"
           aria-label="Add new client"
         >
           <Plus className="w-6 h-6" strokeWidth={2.5} />

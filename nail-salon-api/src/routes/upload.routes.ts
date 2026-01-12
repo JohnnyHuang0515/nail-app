@@ -53,9 +53,13 @@ router.post('/staff', upload.single('file'), async (req, res) => {
         }
         const url = await uploadToMinio(req.file, 'staff-avatars');
         res.json({ url });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Upload error:', error);
-        res.status(500).json({ error: 'Upload failed' });
+        if (error?.code === 'ECONNREFUSED') {
+            res.status(503).json({ error: '圖片上傳服務暫時無法使用' });
+        } else {
+            res.status(500).json({ error: 'Upload failed' });
+        }
     }
 });
 

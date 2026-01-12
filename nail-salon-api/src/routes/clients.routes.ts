@@ -122,7 +122,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 
         const completedBookings = customer.bookings.filter(b => b.status === 'COMPLETED');
         const upcomingBookings = customer.bookings.filter(b =>
-            b.status !== 'CANCELLED' && new Date(b.scheduledAt) > new Date()
+            b.status !== 'NO_SHOW' && new Date(b.scheduledAt) > new Date()
         );
 
         const totalSpend = completedBookings.reduce((sum, b) => sum + Number(b.totalPrice), 0);

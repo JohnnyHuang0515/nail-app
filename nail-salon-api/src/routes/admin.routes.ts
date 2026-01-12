@@ -42,9 +42,11 @@ router.get('/dashboard-stats', async (req: Request, res: Response) => {
         // Let's stick to "Pending appointments" generally requiring attention, but maybe just for today for now to be safe, or global.
         // Let's look at the UI screenshot or logic. "Pending" usually means "To be confirmed".
         // Let's do Global Pending for now as it's an inbox count.
+        // Count today's bookings that need attention (CONFIRMED but not yet checked in)
         const pendingCount = await prisma.booking.count({
             where: {
-                status: 'PENDING'
+                status: 'CONFIRMED',
+                scheduledAt: { gte: start, lte: end }
             }
         });
 
@@ -109,6 +111,13 @@ router.post('/bookings', async (req: Request, res: Response): Promise<void> => {
 
         if (!customerName || !customerPhone || !stylistId || !serviceIds || !scheduledAt) {
             res.status(400).json({ error: '缺少必填欄位 (Missing required fields)' });
+            return;
+        }
+
+        // Validate scheduledAt is in the future
+        const bookingTime = new Date(scheduledAt);
+        if (bookingTime <= new Date()) {
+            res.status(400).json({ error: '預約時間必須是未來的時間' });
             return;
         }
 
@@ -246,7 +255,7 @@ router.patch('/bookings/:id/status', async (req: Request, res: Response) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
+        const validStatuses = ['CONFIRMED', 'CHECKED_IN', 'COMPLETED', 'NO_SHOW'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: '無效的狀態' });
         }
@@ -273,6 +282,14 @@ router.put('/bookings/:id', async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { customerName, customerPhone, stylistId, serviceIds, scheduledAt, notes } = req.body;
+
+        // Validate scheduledAt is in the future (if provided)
+        if (scheduledAt) {
+            const bookingTime = new Date(scheduledAt);
+            if (bookingTime <= new Date()) {
+                return res.status(400).json({ error: '預約時間必須是未來的時間' });
+            }
+        }
 
         // 1. Calculate services price/duration if services changed
         let updateData: any = {

@@ -161,10 +161,10 @@ const BookingConfirm = () => {
           </button>
 
           <button
-            onClick={() => navigate('/member')}
+            onClick={() => navigate('/member/bookings')}
             className="w-full py-3 bg-transparent hover:bg-muted rounded-full font-medium text-foreground transition-all"
           >
-            查看我的訂單 →
+            查看我的預約 →
           </button>
         </div>
       </div>

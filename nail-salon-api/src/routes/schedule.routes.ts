@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
                     lte: end,
                 },
                 status: {
-                    notIn: ['CANCELLED', 'NO_SHOW'],
+                    notIn: ['NO_SHOW'],
                 },
             },
             include: {

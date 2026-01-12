@@ -46,28 +46,30 @@ const Menu = () => {
 
   return (
     <MobileFrame>
-      <div className="flex-1 overflow-y-auto">
-        {/* Header */}
-        <div className="px-5 pt-4 pb-6">
-          <h1 className="text-2xl font-bold text-foreground">店務管理</h1>
-        </div>
+      <div className="flex flex-col h-full bg-background">
+        <div className="flex-1 overflow-hidden">
+          {/* Header */}
+          <div className="px-5 pt-4 pb-6">
+            <h1 className="text-2xl font-bold text-foreground">店務管理</h1>
+          </div>
 
-        {/* Grid Menu */}
-        <div className="px-5 pb-8">
-          <div className="grid grid-cols-2 gap-4">
-            {menuItems.map((item) => (
-              <MenuItem
-                key={item.label}
-                icon={item.icon}
-                label={item.label}
-                onClick={item.path ? () => navigate(item.path) : undefined}
-              />
-            ))}
+          {/* Grid Menu */}
+          <div className="px-5 pb-8">
+            <div className="grid grid-cols-2 gap-4">
+              {menuItems.map((item) => (
+                <MenuItem
+                  key={item.label}
+                  icon={item.icon}
+                  label={item.label}
+                  onClick={item.path ? () => navigate(item.path) : undefined}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      <BottomNavBar />
+        <BottomNavBar />
+      </div>
     </MobileFrame>
   );
 };

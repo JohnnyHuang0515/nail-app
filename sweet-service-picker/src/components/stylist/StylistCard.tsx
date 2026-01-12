@@ -33,9 +33,11 @@ const StylistCard = ({ stylist, onSelect, onViewProfile }: StylistCardProps) => 
             <div>
               <h3 className="font-bold text-lg text-foreground">
                 {stylist.name}
-                <span className="text-muted-foreground font-normal text-sm ml-1">
-                  {stylist.nameEn}
-                </span>
+                {stylist.nameEn && stylist.nameEn !== stylist.name && (
+                  <span className="text-muted-foreground font-normal text-sm ml-1">
+                    {stylist.nameEn}
+                  </span>
+                )}
               </h3>
               <p className="text-sm text-muted-foreground">{stylist.title}</p>
             </div>

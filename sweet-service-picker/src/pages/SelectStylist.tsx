@@ -168,7 +168,7 @@ const SelectStylist = () => {
         )}
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="flex-shrink-0">
           <BottomNav activeTab="home" />
         </div>
       </div>

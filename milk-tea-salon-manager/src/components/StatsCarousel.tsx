@@ -42,26 +42,26 @@ const StatsCarousel = ({ stats }: StatsCarouselProps) => {
 
   return (
     <div className="px-5 py-2">
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-5 px-5">
+      <div className="grid grid-cols-3 gap-2">
         {displayStats.map((stat, index) => (
           <div
             key={stat.label}
             className={cn(
-              "flex-shrink-0 w-36 p-4 rounded-squircle shadow-card animate-scale-in",
+              "p-3 rounded-xl shadow-card animate-scale-in",
               variantStyles[stat.variant]
             )}
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div
               className={cn(
-                "w-9 h-9 rounded-xl flex items-center justify-center mb-3",
+                "w-7 h-7 rounded-lg flex items-center justify-center mb-2",
                 iconBgStyles[stat.variant]
               )}
             >
-              <stat.icon className="w-5 h-5" />
+              <stat.icon className="w-4 h-4" />
             </div>
-            <p className="text-xs font-medium opacity-80 mb-1">{stat.label}</p>
-            <p className="text-2xl font-extrabold">{stat.value}</p>
+            <p className="text-xs font-medium opacity-80 mb-0.5">{stat.label}</p>
+            <p className="text-lg font-extrabold">{stat.value}</p>
           </div>
         ))}
       </div>

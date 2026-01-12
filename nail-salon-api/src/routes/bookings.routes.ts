@@ -223,8 +223,8 @@ router.post('/:id/cancel', authMiddleware, async (req: Request, res: Response): 
         }
 
         // Check if cancellable (e.g., > 24 hours before?)
-        // For MVP, just allow cancel if not COMPLETED or CANCELLED
-        if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(booking.status)) {
+        // For MVP, just allow cancel if not COMPLETED or NO_SHOW
+        if (['COMPLETED', 'NO_SHOW'].includes(booking.status)) {
             res.status(400).json({ error: 'Cannot cancel completed or already cancelled booking' });
             return;
         }
@@ -232,7 +232,7 @@ router.post('/:id/cancel', authMiddleware, async (req: Request, res: Response): 
         const updatedBooking = await prisma.booking.update({
             where: { id: bookingId },
             data: {
-                status: 'CANCELLED',
+                status: 'NO_SHOW',
                 cancelledAt: new Date(),
             },
         });

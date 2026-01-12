@@ -27,11 +27,9 @@ const TIMEZONE = "Asia/Taipei";
 // To keep it simple, checking line 129 for Component start
 
 const statusConfig: Record<BookingStatus, { label: string; color: string; bgColor: string }> = {
-    PENDING: { label: "待確認", color: "text-orange-600", bgColor: "bg-orange-100" },
     CONFIRMED: { label: "已確認", color: "text-blue-600", bgColor: "bg-blue-100" },
     CHECKED_IN: { label: "已報到", color: "text-purple-600", bgColor: "bg-purple-100" },
     COMPLETED: { label: "已完成", color: "text-green-600", bgColor: "bg-green-100" },
-    CANCELLED: { label: "已取消", color: "text-gray-600", bgColor: "bg-gray-100" },
     NO_SHOW: { label: "未到", color: "text-red-600", bgColor: "bg-red-100" },
 };
 
@@ -86,28 +84,7 @@ const BookingCard = ({
 
                 {/* Status Actions */}
                 <div className="flex gap-2">
-                    {booking.status === "PENDING" && (
-                        <>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8 px-3 text-green-600 border-green-200 hover:bg-green-50"
-                                onClick={() => onStatusChange(booking.id, "CONFIRMED")}
-                            >
-                                <Check className="w-4 h-4 mr-1" />
-                                確認
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() => onStatusChange(booking.id, "CANCELLED")}
-                            >
-                                <X className="w-4 h-4 mr-1" />
-                                取消
-                            </Button>
-                        </>
-                    )}
+
                     {booking.status === "CONFIRMED" && (
                         <>
                             <Button
@@ -205,18 +182,16 @@ const Bookings = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">全部</SelectItem>
-                            <SelectItem value="PENDING">待確認</SelectItem>
                             <SelectItem value="CONFIRMED">已確認</SelectItem>
                             <SelectItem value="CHECKED_IN">已報到</SelectItem>
                             <SelectItem value="COMPLETED">已完成</SelectItem>
-                            <SelectItem value="CANCELLED">已取消</SelectItem>
                             <SelectItem value="NO_SHOW">未到</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Booking List */}
-                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 pb-24">
+                <div className="flex-1 overflow-y-auto scrollbar-hide px-5 py-4 space-y-3 pb-24">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-40">
                             <span className="text-muted-foreground">載入中...</span>
@@ -235,7 +210,7 @@ const Bookings = () => {
 
                 <CreateBookingModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
 
-                <BottomNavBar />
+
             </div>
         </MobileFrame>
     );

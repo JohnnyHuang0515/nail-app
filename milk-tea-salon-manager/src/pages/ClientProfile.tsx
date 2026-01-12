@@ -117,7 +117,7 @@ const ClientProfile = () => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {/* Profile Header */}
           <div className="px-5 py-4">
             <div className="flex items-center gap-4">
@@ -332,7 +332,7 @@ const ClientProfile = () => {
           </div>
         </div>
 
-        <BottomNavBar />
+
       </div>
     </MobileFrame>
   );

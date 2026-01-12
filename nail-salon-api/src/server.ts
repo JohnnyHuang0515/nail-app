@@ -70,8 +70,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 app.listen(PORT, async () => {
-    // Ensure MinIO bucket exists
-    await ensureBucketExists();
+    // Ensure MinIO bucket exists (graceful fallback if unavailable)
+    try {
+        await ensureBucketExists();
+        console.log('✅ MinIO storage connected');
+    } catch (error) {
+        console.warn('⚠️  MinIO not available. Image upload will be disabled.');
+    }
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
 

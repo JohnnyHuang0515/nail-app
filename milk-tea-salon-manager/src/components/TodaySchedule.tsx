@@ -11,8 +11,6 @@ const mapStatus = (status: string): "upcoming" | "checked-in" | "completed" => {
       return "completed";
     case "CHECKED_IN":
       return "checked-in";
-    case "CHECKED_IN":
-      return "checked-in";
     case "CONFIRMED":
     default:
       return "upcoming";

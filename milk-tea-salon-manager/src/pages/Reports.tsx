@@ -98,7 +98,7 @@ const Reports = () => {
           </Select>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-3">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-4 space-y-3">
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-3 gap-2">
             <MetricCard

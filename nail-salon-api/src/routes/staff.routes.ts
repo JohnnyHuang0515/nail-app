@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         const formatted = staffList.map(staff => ({
             id: staff.id,
             name: staff.displayName,
-            nameEn: staff.displayNameEn || staff.displayName,
+            nameEn: staff.displayNameEn || null,
             title: staff.title || 'Nail Artist',
             avatar: staff.avatarUrl || staff.user.avatarUrl || '',
             rating: staff.rating,
@@ -92,7 +92,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
         const formatted = {
             id: staff.id,
             name: staff.displayName,
-            nameEn: staff.displayNameEn || staff.displayName,
+            nameEn: staff.displayNameEn || null,
             title: staff.title || 'Nail Artist',
             avatar: staff.avatarUrl || staff.user.avatarUrl || '',
             rating: staff.rating,

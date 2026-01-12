@@ -200,7 +200,7 @@ const Coupons = () => {
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-background">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4">
           <button
@@ -212,7 +212,7 @@ const Coupons = () => {
           <h1 className="text-xl font-bold text-foreground flex-1">優惠券與行銷</h1>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-4">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-4 space-y-4">
           {/* Create Campaign Button */}
           <Button
             onClick={handleAddNew}

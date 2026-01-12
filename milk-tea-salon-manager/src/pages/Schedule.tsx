@@ -1,5 +1,6 @@
 import { useState } from "react";
 import MobileFrame from "@/components/MobileFrame";
+import BottomNavBar from "@/components/BottomNavBar";
 import ScheduleHeader from "@/components/ScheduleHeader";
 import TimelineView from "@/components/TimelineView";
 import ViewSwitcher from "@/components/ViewSwitcher";
@@ -39,6 +40,8 @@ const Schedule = () => {
         <div className="flex-1 overflow-hidden relative">
           <TimelineView currentDate={currentDate} viewMode={viewMode} />
         </div>
+
+        <BottomNavBar />
       </div>
     </MobileFrame>
   );

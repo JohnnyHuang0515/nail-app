@@ -10,16 +10,16 @@ const Home = () => {
 
   return (
     <MobileFrame>
-      <div className="h-full flex flex-col bg-background relative">
+      <div className="h-full flex flex-col bg-background">
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto pb-40">
+        <div className="flex-1 overflow-y-auto pb-4">
           <HeroSection />
           <ShopInfoCard />
           <PortfolioGallery />
         </div>
 
         {/* Fixed Bottom Area */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="flex-shrink-0">
           {/* Booking Button */}
           <div className="px-5 py-3 bg-gradient-to-t from-background via-background to-transparent">
             <button

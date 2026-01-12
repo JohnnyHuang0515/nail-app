@@ -240,7 +240,7 @@ const Services = () => {
 
   return (
     <MobileFrame>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-background">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4">
           <button
@@ -285,7 +285,7 @@ const Services = () => {
         </div>
 
         {/* Service List */}
-        <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-2">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pb-4 space-y-2">
           {filteredServices.length > 0 ? (
             filteredServices.map((service) => (
               <ServiceItem

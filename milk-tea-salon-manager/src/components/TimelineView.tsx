@@ -13,7 +13,7 @@ interface TimelineViewProps {
   currentDate: Date;
 }
 
-const hours = Array.from({ length: 11 }, (_, i) => i + 10); // 10:00 - 20:00
+const hours = Array.from({ length: 15 }, (_, i) => i + 10); // 10:00 - 00:00 (midnight)
 const ROW_HEIGHT = 60; // Row height for timeline
 
 const staffColorStyles = {
@@ -212,7 +212,7 @@ const TimelineView = ({ viewMode, currentDate }: TimelineViewProps) => {
           </div>
 
           {/* Timeline grid */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <div className="flex-1 overflow-y-auto scrollbar-hide pb-20">
             <div className="relative" style={{ height: `${hours.length * ROW_HEIGHT}px` }}>
               {/* Hour rows */}
               {hours.map((hour) => (

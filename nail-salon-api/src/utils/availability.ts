@@ -74,7 +74,7 @@ export async function getStaffAvailability(
     const bookings = await prisma.booking.findMany({
         where: {
             stylistId: staffId,
-            status: { not: 'CANCELLED' },
+            status: { notIn: ['NO_SHOW'] },
             scheduledAt: {
                 gte: startOfDayDate,
                 lte: endOfDayDate
